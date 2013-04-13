@@ -6,15 +6,6 @@ body {
   background: url('../img/pattern_130.gif');
 }
 
-.container {
-  position: relative;
-  background: #fff;
-  border-radius: 4px;
-  margin-top: -10px;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-}
-
-
 /* hide contents until we know if user is signed in or not */
 body .hoodie-account-signedin,
 body .hoodie-account-signedout,

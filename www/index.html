@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>{{hoodie_appname}}</title>
+    <title>blockplot</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-
+    
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="flatui/css/flat-ui.css">
+    
     <link rel="stylesheet" href="css/main.css">
-
+    
     <script src="js/vendor/jquery-1.9.1.js"></script>
     <script src="js/vendor/bootstrap.js"></script>
     <script src="js/vendor/hoodie.js"></script>
@@ -18,109 +20,108 @@
     <script src="js/main.js"></script>
   </head>
   <body>
-    <div class="container">
-      <div class="hero-unit">
-        <h1>{{hoodie_appname}}</h1>
-        <p>
-          hoodie playground.
-        </p>
+    
+    <div class="hero-unit">
+      <h1>blockplot</h1>
+      <p>
+        hoodie playground.
+      </p>
 
-        <div class="hoodie-accountbar">
+      <div class="hoodie-accountbar">
 
-          <div class="hoodie-account-signedout">
-            <span class="btn-group">
-              <button class="btn btn-small btn-inverse" data-hoodie-action="signup">Sign Up</button>
-              <button class="btn btn-small dropdown-toggle btn-inverse" data-toggle="dropdown">
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="#" data-hoodie-action="signin">Sign In</a></li>
-                <li><a href="#" data-hoodie-action="resetpassword">Reset Password</a></li>
-                <li><a href="#" data-hoodie-action="destroy">Clear local data</a></li>
-              </ul>
-            </span>
-          </div><!-- /.hoodie-account-signedout -->
+        <div class="hoodie-account-signedout">
+          <span class="btn-group">
+            <button class="btn btn-small btn-inverse" data-hoodie-action="signup">Sign Up</button>
+            <button class="btn btn-small dropdown-toggle btn-inverse" data-toggle="dropdown">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right">
+              <li><a href="#" data-hoodie-action="signin">Sign In</a></li>
+              <li><a href="#" data-hoodie-action="resetpassword">Reset Password</a></li>
+              <li><a href="#" data-hoodie-action="destroy">Clear local data</a></li>
+            </ul>
+          </span>
+        </div><!-- /.hoodie-account-signedout -->
 
-          <div class="hoodie-account-signedin">
-            Hello,
-            <span class="hoodie-username"><!-- usern name will be filled in here --></span>
-            <span class="btn-group">
-              <button class="btn btn-small btn-inverse" data-hoodie-action="signout">Sign Out</button>
-              <button class="btn btn-small dropdown-toggle btn-inverse" data-toggle="dropdown">
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="#" data-hoodie-action="changepassword">Change Password</a></li>
-                <li><a href="#" data-hoodie-action="changeusername">Change Username</a></li>
-                <li><a href="#" data-hoodie-action="destroy">Destroy Account</a></li>
-              </ul>
-            </span>
-          </div><!-- /.hoodie-account-signedin -->
+        <div class="hoodie-account-signedin">
+          Hello,
+          <span class="hoodie-username"><!-- usern name will be filled in here --></span>
+          <span class="btn-group">
+            <button class="btn btn-small btn-inverse" data-hoodie-action="signout">Sign Out</button>
+            <button class="btn btn-small dropdown-toggle btn-inverse" data-toggle="dropdown">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right">
+              <li><a href="#" data-hoodie-action="changepassword">Change Password</a></li>
+              <li><a href="#" data-hoodie-action="changeusername">Change Username</a></li>
+              <li><a href="#" data-hoodie-action="destroy">Destroy Account</a></li>
+            </ul>
+          </span>
+        </div><!-- /.hoodie-account-signedin -->
 
-          <div class="hoodie-account-error">
-            Hello,
-            <span class="hoodie-username"><!-- usern name will be filled in here --></span>.
-            <span class="btn-group">
-              <button class="btn btn-small btn-danger" data-hoodie-action="signin">Authentication error: Sign in again</button>
-              <button class="btn btn-small dropdown-toggle btn-danger" data-toggle="dropdown">
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="#" data-hoodie-action="signout">Sign out</a></li>
-              </ul>
-            </span>
-          </div><!-- /.hoodie-account-error -->
-        </div><!--/hoodieAccountBar -->
-      </div>
+        <div class="hoodie-account-error">
+          Hello,
+          <span class="hoodie-username"><!-- usern name will be filled in here --></span>.
+          <span class="btn-group">
+            <button class="btn btn-small btn-danger" data-hoodie-action="signin">Authentication error: Sign in again</button>
+            <button class="btn btn-small dropdown-toggle btn-danger" data-toggle="dropdown">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right">
+              <li><a href="#" data-hoodie-action="signout">Sign out</a></li>
+            </ul>
+          </span>
+        </div><!-- /.hoodie-account-error -->
+      </div><!--/hoodieAccountBar -->
+    </div>
 
-      <div class="playground">
-        <ul class="nav nav-tabs">
-          <li class="active"><a  class="preview-tab" href="#preview" data-toggle="tab">Preview</a></li>
-          <li><a class="code-tab" href="#code" data-toggle="tab">Code</a></li>
-        </ul>
+    <div class="playground">
+      <ul class="nav nav-tabs">
+        <li class="active"><a  class="preview-tab" href="#preview" data-toggle="tab">Preview</a></li>
+        <li><a class="code-tab" href="#code" data-toggle="tab">Code</a></li>
+      </ul>
 
-        <div class="tab-content">
-          <div class="tab-pane" id="preview">
-            <ul id="todolist"></ul>
+      <div class="tab-content">
+        <div class="tab-pane" id="preview">
+          <ul id="todolist"></ul>
 
-            <input type="text" id="todoinput"  placeholder="new todo ↵" />
+          <input type="text" id="todoinput"  placeholder="new todo ↵" />
 
-            <script>
-              $('#todoinput').on('keypress', function(event) {
-                if (event.charCode == 13) { // ENTER
-                  hoodie.store.add('todo', {title: event.target.value})
-                  event.target.value = ''
-                }
-              })
-
-              var addTodo = function( todo ) {
-                $('#todolist').append('<li>'+todo.title+'</li>')
+          <script>
+            $('#todoinput').on('keypress', function(event) {
+              if (event.charCode == 13) { // ENTER
+                hoodie.store.add('todo', {title: event.target.value})
+                event.target.value = ''
               }
-              var clearTodos = function () {
-                $('#todolist').html()
-              }
+            })
 
-              hoodie.unbind('store:add:todo')
-              hoodie.store.on('add:todo', addTodo)
-              hoodie.store.on('clear', clearTodos)
+            var addTodo = function( todo ) {
+              $('#todolist').append('<li>'+todo.title+'</li>')
+            }
+            var clearTodos = function () {
+              $('#todolist').html()
+            }
 
-              hoodie.store.findAll('todo').then( function(todos) {
-                todos
-                  .sort( function(a, b) { return a.createdAt > b.createdAt })
-                  .forEach( addTodo )
-              })
-            </script>
-          </div>
-          <div class="tab-pane" id="code">
-            <div id="editor"></div>
-          </div>
+            hoodie.unbind('store:add:todo')
+            hoodie.store.on('add:todo', addTodo)
+            hoodie.store.on('clear', clearTodos)
+
+            hoodie.store.findAll('todo').then( function(todos) {
+              todos
+                .sort( function(a, b) { return a.createdAt > b.createdAt })
+                .forEach( addTodo )
+            })
+          </script>
+        </div>
+        <div class="tab-pane" id="code">
+          <div id="editor"></div>
         </div>
       </div>
+    </div>
 
-      <footer class="copy">
-        <p>&hearts; hood.ie 2013</p>
-      </footer>
-    </div> <!-- /.container -->
+    <footer class="copy">
+      <p>&hearts; hood.ie 2013</p>
+    </footer>
 
     <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js"></script>
   </body>
