@@ -1,11 +1,27 @@
-/* ==========================================================================
-   Hoodie Sign In / Sign Up / Sign out stylings
-   ========================================================================== */
 
+html, 
 body {
-  background: url('../img/pattern_130.gif');
+  height: 100%;
+  overflow: hidden;
 }
 
+html {
+  background-color: #222;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGklEQVQIW2NkYGD4D8SMQAwGcAY2AbBKDBUAVuYCBQPd34sAAAAASUVORK5CYII=);
+  background-repeat: repeat;
+}
+
+body {
+  background: #fff;
+
+  font-family: 'Lato', Helvetica, sans-serif;
+  font-size: 16px;
+  color: #222;
+}
+
+.open-menu { padding: 5px !important; position: absolute; top: 10px; right: 10px; width: auto; }
+.menu-icon { display: inline-block; width: 50px; height: 50px; background: url(../img/settings.png) no-repeat 0 0; }
+.default-popup { overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
 /* hide contents until we know if user is signed in or not */
 body .hoodie-account-signedin,
 body .hoodie-account-signedout,
