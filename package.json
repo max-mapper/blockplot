@@ -1,6 +1,6 @@
 {
   "name": "blockplot",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "app",
   "dependencies": {
     "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
