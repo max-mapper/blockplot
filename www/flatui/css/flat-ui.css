@@ -1,4 +1,3 @@
-@import url("http://fonts.googleapis.com/css?family=Lato:400,700,900,400italic");
 @font-face {
   font-family: "Flat-UI-Icons-16";
   src: url("../fonts/Flat-UI-Icons-16.eot");
@@ -2362,12 +2361,12 @@ body.vjs-full-window {
       font-size: inherit;
       font-weight: 700; }
 
-.login-form {
+.form {
   background-color: #eceff1;
   border-radius: 6px;
   padding: 24px 23px 20px;
   position: relative; }
-  .login-form:before {
+  .form:before {
     content: "";
     border-style: solid;
     border-width: 12px 12px 12px 0;
@@ -2378,19 +2377,19 @@ body.vjs-full-window {
     top: 35px;
     width: 0;
     -webkit-transform: rotate(360deg); }
-  .login-form .control-group {
+  .form .control-group {
     margin-bottom: 6px;
     position: relative; }
-  .login-form .login-field {
+  .form .login-field {
     border-color: transparent;
     font-size: 17px;
     padding-bottom: 11px;
     padding-top: 11px;
     text-indent: 3px;
     width: 299px; }
-    .login-form .login-field:focus + .login-field-icon {
+    .form .login-field:focus + .login-field-icon {
       color: #1abc9c; }
-  .login-form .login-field-icon {
+  .form .login-field-icon {
     color: #bfc9ca;
     font-size: 16px;
     position: absolute;

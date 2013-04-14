@@ -6,38 +6,68 @@
     <title>blockplot</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="flatui/css/flat-ui.css">
     <link rel="stylesheet" href="css/avgrund.css">
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body>
-    <a href="#" class="btn btn-primary btn-block btn-large open-menu"><span class="menu-icon"></span></a>
+    <div class="open-menu">
+      <a class="greeting"></a>
+      <a href="#" class="btn btn-info btn-block btn-large"><span class="menu-icon"></span></a>
+    </div>
     
     
     <aside id="default-popup" class="avgrund-popup">
+    </aside>
+    
+    <aside class="form-container">
       <div class="login-screen">
         <div class="login-icon">
           <img src="img/chicken.png" alt="Welcome to BlockPlot">
            <h4>Welcome to <small>BlockPlot</small></h4>
 
         </div>
-        <div class="login-form">
-          <div class="control-group">
-            <input type="text" class="login-field" value="" placeholder="Enter your name"
-            id="login-name">
-            <label class="login-field-icon fui-man-16" for="login-name"></label>
-          </div>
-          <div class="control-group">
-            <input type="password" class="login-field" value="" placeholder="Password"
-            id="login-pass">
-            <label class="login-field-icon fui-lock-16" for="login-pass"></label>
-          </div> <a class="btn btn-primary btn-large btn-block" href="#">Login</a>
-       <a class="login-link"
-          href="#">Lost your password?</a>
-
+        <div class="form">
+          
         </div>
       </div>
+    </aside>
+    
+    <aside class="login-form">
+      <div class="control-group">
+        <input type="text" class="login-field" name="username" value="" placeholder="Username"
+        id="login-name">
+        <label class="login-field-icon fui-man-16" for="login-name"></label>
+      </div>
+      <div class="control-group">
+        <input type="password" class="login-field" name="password" value="" placeholder="Password"
+        id="login-pass">
+        <label class="login-field-icon fui-lock-16" for="login-pass"></label>
+      </div>
+      <a class="btn btn-info btn-large btn-block" href="#">Login</a>
+      <a class="login-link show-signup" href="#">Create an account</a>
+    </aside>
+    
+    <aside class="signup-form">
+      <div class="control-group">
+        <input type="text" class="login-field" name="username" placeholder="Username"
+        id="login-name">
+        <label class="login-field-icon fui-man-16" for="login-name"></label>
+      </div>
+      <div class="control-group">
+        <input type="password" class="login-field" name="password" placeholder="Password"
+        id="login-pass">
+        <label class="login-field-icon fui-lock-16" for="login-pass"></label>
+      </div>
+      <div class="control-group">
+        <input type="password" class="login-field" name="password_confirmation" placeholder="Confirm password"
+        id="login-pass">
+        <label class="login-field-icon fui-lock-16" for="login-pass"></label>
+      </div>
+      <a class="btn btn-info btn-large btn-block" href="#">Submit</a>
+      <a class="login-link show-login" href="#">Already have an account? Log in</a>
     </aside>
 
     <div class="hoodie-accountbar">
@@ -92,6 +122,7 @@
     <script type="text/javascript" src="js/vendor/bootstrap.js"></script>
     <script type="text/javascript" src="js/vendor/avgrund.js"></script>
     <script type="text/javascript" src="js/vendor/hoodie.js"></script>
+    <script type="text/javascript" src="js/hoodie-auth.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
     
   </body>
