@@ -2,8 +2,10 @@
   exports.hoodieAuth = function(hoodie, container) {
     hoodie.account.authenticate().then(isLoggedIn, isLoggedOut)
 
-    function isLoggedIn() {
-      console.log('logged in')
+    function isLoggedIn(user) {
+      console.log('logged in', user)
+      $('.greeting').text('Hello ' + user)
+      container.html($('.welcome').html())
     }
 
     function isLoggedOut() {
@@ -12,16 +14,16 @@
       container.find('.form').html($('.login-form').html())
     }
 
-    function authenticated() {
-      console.log('auth')
+    function authenticated(e) {
+      
     }
 
-    function unauthenticated() {
-      console.log('unauth')
+    function unauthenticated(e) {
+      console.log('unauth', e)
     }
 
-    function authError() {
-      console.log('auth err')
+    function authError(e) {
+      console.log('auth err', e)
     }
 
     hoodie.account.on('authenticated', authenticated)

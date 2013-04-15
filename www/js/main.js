@@ -28,6 +28,9 @@ function fieldParent(form, field) {
   return $(parent)
 }
 
+function logout() {
+  hoodie.account.signOut()
+}
 
 function missing(form, field) {
   var data = getLoginFormData(form)
@@ -44,9 +47,10 @@ function missing(form, field) {
 function validate(form) {
   var data = getLoginFormData(form)
   var missingUser = missing(form, 'username')
+  var missingEmail = missing(form, 'email')
   var missingPass = missing(form, 'password')
   var missingConfirm = missing(form, 'password_confirmation')
-  if (missingUser || missingPass) return false
+  if (missingUser || missingPass || missingEmail) return false
   if (data.action !== "signUp") return true
   var pass = formField(form, 'password').val()
   var confirm = formField(form, 'password_confirmation').val()
@@ -65,25 +69,36 @@ function validate(form) {
 function getLoginFormData(form) {
   var action = form.find('input[type="submit"]').attr('data-action')
   var username = form.find('input[name="username"]').val()
+  var email = form.find('input[name="email"]').val()
   var password = form.find('input[name="password"]').val()
   var password_confirmation = form.find('input[name="password_confirmation"]').val()
   return {
     action: action,
     username: username,
+    email: email,
     password: password,
     password_confirmation: password_confirmation
   }
 }
+
 function submitLoginForm(e) {
   e.preventDefault()
   var form = $(e.target)
   var data = getLoginFormData(form)
-  validate(form)
-  return false
+  if (!validate(form)) return
+  hoodie.store.add('email', data.email)
+  hoodie.account[data.action](data.username, data.password)
+    .done(function(data) {
+      console.log('logged in', data)
+    })
+    .fail(function(err) {
+      console.log('login err', err)
+    })
 }
 
 $(document)
   .on('click', '.open-menu', openDialog)
   .on('click', '.show-signup', showSignup)
   .on('click', '.show-login', showLogin)
+  .on('click', '.logout', logout)
   .on('submit', '.login-screen .form', submitLoginForm)
