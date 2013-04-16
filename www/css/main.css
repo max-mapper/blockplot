@@ -50,7 +50,7 @@ body {
 .open-menu a { display: block; float: left; }
 .open-menu .greeting { line-height: 35px; padding-right: 10px; }
 .menu-icon { display: block; width: 25px; height: 25px; background: url(../img/menu.png) no-repeat 0 0; }
-aside { visibility: hidden; }
+aside { visibility: hidden; display: none; }
 .default-popup { overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
 /* hide contents until we know if user is signed in or not */
 body .hoodie-account-signedin,

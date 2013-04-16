@@ -27,6 +27,7 @@
 }
 	.avgrund-active .avgrund-cover {
 		visibility: visible;
+		display: block;
 		opacity: 1;
 	}
 
@@ -75,6 +76,7 @@
 }
 	.avgrund-active .avgrund-popup-animate {
 		visibility: visible;
+		display: block;
 		opacity: 1;
 
 		-webkit-transform: scale( 1.1 );
