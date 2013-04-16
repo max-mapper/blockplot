@@ -1,7 +1,16 @@
 var hoodie  = new Hoodie()
 
 var formContainer = $('#default-popup')
-hoodieAuth(hoodie, formContainer)
+
+hoodie.account.authenticate().then(function(){}, isLoggedOut)
+
+function authError(e) {
+  console.log('auth err', e)
+}
+
+hoodie.account.on('authenticated', isLoggedIn)
+hoodie.account.on('signout', isLoggedOut)
+hoodie.on('account:error:unauthenticated remote:error:unauthenticated', authError)
 
 function openDialog() {
   Avgrund.show( "#default-popup" )
@@ -9,6 +18,17 @@ function openDialog() {
 
 function closeDialog() {
   Avgrund.hide()
+}
+
+function isLoggedIn(user) {
+  $('.greeting').text('Hello ' + user)
+  formContainer.html($('.welcome').html())
+}
+
+function isLoggedOut() {
+  $('.greeting').text('Log in or sign up')
+  formContainer.html($('.form-container').html())
+  formContainer.find('.form').html($('.login-form').html())
 }
 
 function showSignup() {
@@ -50,10 +70,11 @@ function validate(form) {
   var missingEmail = missing(form, 'email')
   var missingPass = missing(form, 'password')
   var missingConfirm = missing(form, 'password_confirmation')
-  if (missingUser || missingPass || missingEmail) return false
+  if (missingUser || missingPass) return false
   if (data.action !== "signUp") return true
   var pass = formField(form, 'password').val()
   var confirm = formField(form, 'password_confirmation').val()
+  if (missingEmail) return
   if (pass !== confirm) {
     fieldParent(form, 'password').addClass('error')
     fieldParent(form, 'password_confirmation').addClass('error')
@@ -84,15 +105,22 @@ function getLoginFormData(form) {
 function submitLoginForm(e) {
   e.preventDefault()
   var form = $(e.target)
+  form.find('.messages').html('')
   var data = getLoginFormData(form)
   if (!validate(form)) return
+  var icon = $('.login-screen .login-icon > img')
+  icon.addClass('rotating')
   hoodie.store.add('email', data.email)
   hoodie.account[data.action](data.username, data.password)
-    .done(function(data) {
-      console.log('logged in', data)
+    .done(function(user) {
+      icon.removeClass('rotating')
+      isLoggedIn(user)
     })
     .fail(function(err) {
-      console.log('login err', err)
+      icon.removeClass('rotating')
+      var msg = err.reason
+      if (err.error && err.error === "conflict") msg = "Username already exists."
+      form.find('.messages').html('<p>' + msg + '</p>')
     })
 }
 
