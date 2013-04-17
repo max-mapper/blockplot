@@ -26,7 +26,7 @@ function isLoggedIn(user) {
 }
 
 function isLoggedOut() {
-  $('.greeting').text('Log in or sign up')
+  $('.greeting').text('')
   formContainer.html($('.form-container').html())
   formContainer.find('.form').html($('.login-form').html())
 }
@@ -126,6 +126,7 @@ function submitLoginForm(e) {
 
 $(document)
   .on('click', '.open-menu', openDialog)
+  .on('click', '.open-login', openDialog)
   .on('click', '.show-signup', showSignup)
   .on('click', '.show-login', showLogin)
   .on('click', '.logout', logout)
