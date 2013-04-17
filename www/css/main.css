@@ -1,10 +1,5 @@
-html, 
-body {
-  height: 100%;
-  overflow: hidden;
-}
-
 html {
+  -webkit-font-smoothing: antialiased;
   background-color: #222;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGklEQVQIW2NkYGD4D8SMQAwGcAY2AbBKDBUAVuYCBQPd34sAAAAASUVORK5CYII=);
   background-repeat: repeat;
@@ -12,10 +7,20 @@ html {
 
 body {
   background: #fff;
-
   font-family: 'Lato', Helvetica, sans-serif;
   font-size: 16px;
   color: #222;
+}
+
+.logo {
+  margin: 0 auto;
+  background: url(../img/logo.png) no-repeat 0 0;
+  width: 800px;
+  height: 264px;
+  position: absolute;
+  left: 0;
+  top: 52px;
+  right: 12px;
 }
 
 /* flat ui overrides */
@@ -51,26 +56,8 @@ body {
 .open-menu .greeting { line-height: 35px; padding-right: 10px; }
 .menu-icon { display: block; width: 25px; height: 25px; background: url(../img/menu.png) no-repeat 0 0; }
 aside { visibility: hidden; display: none; }
-.default-popup { overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
-/* hide contents until we know if user is signed in or not */
-body .hoodie-account-signedin,
-body .hoodie-account-signedout,
-body .hoodie-account-error {
-  display: none;
-}
-
-html[data-hoodie-account-status=signedin]  .hoodie-account-signedin,
-html[data-hoodie-account-status=error]     .hoodie-account-error,
-html[data-hoodie-account-status=signedout] .hoodie-account-signedout {
-  display: block;
-}
-
-.hoodie-accountbar {
-  position: absolute;
-  top: 20px;
-  right: 10px;
-}
-
+.default-popup { position: absolute !important; overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
+.avgrund-popup { position: absolute; }
 .playground .nav-tabs {
   margin: 0;
 }
@@ -119,3 +106,20 @@ html[data-hoodie-account-status=signedout] .hoodie-account-signedout {
 .rotating {
     -webkit-animation: rotating 2s linear infinite;
 }
+
+.section { height: 360px; padding: 0; margin: 0; width: 100%; max-width: 1920px; position: relative; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid rgba(0,0,0,0.4); box-shadow: 0 0 50px rgba(0,0,0,0.8);}
+
+#first { background: #fff url('../img/bg4.png') repeat top center; }
+#second { background: url(../img/nyc.png) 50% 0 no-repeat fixed; }
+#third { background: url(../img/texture-noise.png) }
+
+#second h1 { margin-top: 100px; color: white; text-shadow: 5px 5px 0 #ffd217; }
+#second small { background-color: black; color: white; text-shadow: none; padding: 5px; position: relative; top: 15px; background-color: rgba(0,0,0,0.6);}
+
+
+#first .bicycler { padding: 0; margin: 0; overflow: auto; position: absolute; margin: 0 auto; -webkit-transition: all 1s; -webkit-animation: cyclist 10s infinite linear;}
+#first article { width: 100%; top: 0px; position: absolute; text-align: center; }
+
+#second { padding: 0; max-height: 360px !important; }
+
+#third { padding: 50px 0 0 0; background: #092D3F; }

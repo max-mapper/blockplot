@@ -44,21 +44,25 @@ function init() {
 
   // Lights
 
-  var ambientLight = new THREE.AmbientLight( Math.random() * 0x10 );
+  // var alp = Math.random() * 0x10
+  var ambientLight = new THREE.AmbientLight( 9.381581880152225   );
   scene.add( ambientLight );
 
   var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
-  directionalLight.position.x = Math.random() - 0.5;
-  directionalLight.position.y = Math.random() - 0.5;
-  directionalLight.position.z = Math.random() - 0.5;
+  // directionalLight.position.x = Math.random() - 0.5;
+  // directionalLight.position.y = Math.random() - 0.5;
+  // directionalLight.position.z = Math.random() - 0.5;
+  directionalLight.position.copy({ "x": 0.4637009314795087, "y": -0.6329965798085929, "z": -0.6199167493266008 })
   directionalLight.position.normalize();
   scene.add( directionalLight );
 
   var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
-  directionalLight.position.x = Math.random() - 0.5;
-  directionalLight.position.y = Math.random() - 0.5;
-  directionalLight.position.z = Math.random() - 0.5;
+  // directionalLight.position.x = Math.random() - 0.5;
+  // directionalLight.position.y = Math.random() - 0.5;
+  // directionalLight.position.z = Math.random() - 0.5;
+  directionalLight.position.copy({ "x": 0.5480640365708019, "y": -0.5509175233997147, "z": 0.6293772272880895 })
   directionalLight.position.normalize();
+
   scene.add( directionalLight );
 
   renderer = new THREE.CanvasRenderer();
@@ -76,12 +80,12 @@ function init() {
 
 function onWindowResize() {
 
-  camera.left = window.innerWidth / - 2;
-  camera.right = window.innerWidth / 2;
-  camera.top = window.innerHeight / 2;
-  camera.bottom = window.innerHeight / - 2;
-
-  camera.updateProjectionMatrix();
+  // camera.left = window.innerWidth / - 2;
+  // camera.right = window.innerWidth / 2;
+  // camera.top = window.innerHeight / 2;
+  // camera.bottom = window.innerHeight / - 2;
+  // 
+  // camera.updateProjectionMatrix();
 
   renderer.setSize( window.innerWidth, window.innerHeight );
 

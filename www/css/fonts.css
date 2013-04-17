@@ -4,7 +4,12 @@
   font-weight: normal;
   font-style: normal;
 }
-
+@font-face {
+  font-family: 'Golfer';
+  src: url('../fonts/golfer.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
 @font-face {
   font-family: 'Lato';
   font-style: normal;
