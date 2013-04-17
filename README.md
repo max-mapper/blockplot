@@ -1,3 +1,7 @@
+instructions: install http://hood.ie/ and then do 'hoodie start' in root
+
+default hoodie readme follows:
+
 # Creating a new Hoodie App
 
 Prerequisits:
