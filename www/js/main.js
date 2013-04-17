@@ -1,6 +1,7 @@
 var hoodie  = new Hoodie()
 
 var formContainer = $('#default-popup')
+var frontPageForm = $('.front-page-form')
 
 hoodie.account.authenticate().then(function(){}, isLoggedOut)
 
@@ -23,12 +24,14 @@ function closeDialog() {
 function isLoggedIn(user) {
   $('.greeting').text('Hello ' + user)
   formContainer.html($('.welcome').html())
+  frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
 }
 
 function isLoggedOut() {
   $('.greeting').text('')
   formContainer.html($('.form-container').html())
   formContainer.find('.form').html($('.login-form').html())
+  frontPageForm.find('p:first').html($('.frontpage-signup-form').html())
 }
 
 function showSignup() {
@@ -69,21 +72,10 @@ function validate(form) {
   var missingUser = missing(form, 'username')
   var missingEmail = missing(form, 'email')
   var missingPass = missing(form, 'password')
-  var missingConfirm = missing(form, 'password_confirmation')
   if (missingUser || missingPass) return false
   if (data.action !== "signUp") return true
   var pass = formField(form, 'password').val()
-  var confirm = formField(form, 'password_confirmation').val()
   if (missingEmail) return
-  if (pass !== confirm) {
-    fieldParent(form, 'password').addClass('error')
-    fieldParent(form, 'password_confirmation').addClass('error')
-    return false
-  } else {
-    fieldParent(form, 'password').removeClass('error')
-    fieldParent(form, 'password_confirmation').removeClass('error')
-    return true
-  }
   return true
 }
 
@@ -92,15 +84,37 @@ function getLoginFormData(form) {
   var username = form.find('input[name="username"]').val()
   var email = form.find('input[name="email"]').val()
   var password = form.find('input[name="password"]').val()
-  var password_confirmation = form.find('input[name="password_confirmation"]').val()
   return {
     action: action,
     username: username,
     email: email,
-    password: password,
-    password_confirmation: password_confirmation
+    password: password
   }
 }
+
+function submitSignupForm(e) {
+  e.preventDefault()
+  var form = $(e.target)
+  form.find('.messages').html('')
+  var data = getLoginFormData(form)
+  if (!validate(form)) return
+  form.find('input').addClass('disabled')
+  hoodie.store.add('email', data.email)
+  hoodie.account.signUp(data.username, data.password)
+    .done(function(user) {
+      isLoggedIn(user)
+      form.find('input.disabled').removeClass('disabled')
+      window.scrollTo(0,0)
+      $('.open-login').click()
+    })
+    .fail(function(err) {
+      var msg = err.reason
+      if (err.error && err.error === "conflict") msg = "Username already exists."
+      form.find('.messages').html('<p>' + msg + '</p>')
+    })
+  return false;
+}
+
 
 function submitLoginForm(e) {
   e.preventDefault()
@@ -131,6 +145,7 @@ $(document)
   .on('click', '.show-login', showLogin)
   .on('click', '.logout', logout)
   .on('submit', '.login-screen .form', submitLoginForm)
+  .on('submit', '.front-page-form .form', submitSignupForm)
   
 
 // Cache the Window object

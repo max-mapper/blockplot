@@ -23,6 +23,15 @@ body {
   right: 0;
 }
 
+.login-link { color: #34495e; }
+.footnote { margin-top: 10px; font-size: 11px; color: #34495e; }
+.welcome { background: #fff; }
+.container { width: 960px; }
+.poweredby { width: 160px; font-size: 14px; font-weight: bold; }
+
+.front-page-form .form:before { content: none; }
+.front-page-form .form .login-field { width: 220px; }
+
 /* flat ui overrides */
 
   /* original color: #1abc9c */
@@ -122,6 +131,6 @@ aside { visibility: hidden; display: none; }
 #first .tile { width: 250px; }
 #first article { width: 100%; top: 0px; position: absolute; text-align: center; }
 
-#second { padding: 0; max-height: 360px !important; }
+#second { padding: 0; max-height: 360px !important; background-color: #BFD1E5; }
 
-#third { padding: 50px 0 0 0; background: #092D3F; }
+#third { height: 440px; padding: 0; background: #092D3F; }

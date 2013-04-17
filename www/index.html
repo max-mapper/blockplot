@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <html class="no-js">
+<!--      _.-+.
+     _.-""     '.
+ +:""            '.
+ J \               '.
+  L \             _.-+
+  |  '.       _.-"   |
+  J    \  _.-"       L
+   L    +"          J
+   +    |           |
+    \   |          .+
+     \  |       .-'
+      \ |    .-'
+       \| .-'
+        +'   hs -->
+
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -22,7 +37,7 @@
         <div class="logo"></div>
         <div class="tile">
           <a class="btn btn-info btn-large btn-block open-login" href="#"><span>Login or Sign Up <span class="menu-icon"></span></span></a>
-          <a class="btn btn-info btn-large btn-block btn-excite" href="#">Open a Demo World</a>
+          <a class="btn btn-info btn-large btn-block btn-excite" href="#">Try a Demo World</a>
         </div>
       </article>
     </section>
@@ -30,7 +45,7 @@
     <section id="second" class="section" data-speed="4" data-type="background">
       <center>
         <h1 class="demo-logo">
-          Share your world.
+          Share your world online.
         </h1>
         <small>No plugins or downloads required</small>
         
@@ -39,11 +54,40 @@
     
     <section id="third" class="section" data-speed="8" data-type="background" data-offsetY="250"> 
     <div class="container">
-      <center>
-        <p>POWERED BY</p>
-        <img src="img/voxeljslogo.png">
-      </center>
-    </div>
+      <div class="span4">
+        <div class="demo-text-box prl">
+          <h3 class="demo-panel-title">Play On The Web</h3>
+          
+          <p>
+            <strong>BlockPlot</strong> is a web app where you can create new 3D worlds or upload existing worlds from other popular voxel apps and share them online with your friends.
+          </p>
+          <p>
+            It is made by the team that created <strong><a target="_blank" href="http://voxeljs.com">Voxel.js</a></strong>, the most advanced open source JavaScript technology for rendering voxel worlds in web browsers.
+          </p>
+          <p class="poweredby">
+            <small>POWERED BY</small>
+            <a target="_blank" href="http://voxeljs.com"><img src="img/voxeljslogo.png"></a>
+          </p>
+          </div>
+        </div>
+        <div class="span4">
+          <div class="demo-text-box prl">
+            <h3 class="demo-panel-title">Requirements</h3>
+            <p>
+              BlockPlot requires a web browser that supports <strong><a href="http://get.webgl.org" target="_blank">WebGL</a></strong>. It will work on most computers that can play other 3D video games.
+            </p>
+            <p>
+              You can find out if your browser supports WebGL by visiting <strong><a href="http://get.webgl.org/" target="_blank">this test page</a></strong>.
+            </p>
+          </div>
+        </div>
+        <div class="span4">
+          <div class="demo-text-box prl front-page-form">
+            <h3 class="demo-panel-title">Reserve Your Plot</h3>
+            <p></p>
+          </div>
+        </div>
+      </div>
     </section>
   
     <div class="open-menu">
@@ -95,13 +139,39 @@
         id="login-pass" required>
         <label class="login-field-icon fui-lock-16" for="login-pass"></label>
       </div>
-      <div class="control-group">
-        <input type="password" class="login-field" name="password_confirmation" placeholder="Confirm password"
-        id="login-pass-confirm">
-        <label class="login-field-icon fui-lock-16" for="login-pass"></label>
-      </div>
       <input data-action="signUp" type="submit" class="btn btn-info btn-large btn-block" href="#"></input>
       <a class="login-link show-login" href="#">Already have an account? Log in</a>
+      <p class="footnote">By registering you confirm that you are 13 years of age or older.</p>
+      
+    </aside>
+    
+    <aside class="frontpage-signup-form">
+      <form class="form">
+        <div class="messages"></div>
+        <div class="control-group">
+          <input type="text" class="login-field" name="username" placeholder="Pick a username"
+          id="login-name" required>
+          <label class="login-field-icon fui-man-16" for="login-name"></label>
+        </div>
+        <div class="control-group">
+          <input type="email" class="login-field" name="email" placeholder="E-mail address"
+          id="login-email" required>
+          <label class="login-field-icon fui-mail-16" for="login-name"></label>
+        </div>
+        <div class="control-group">
+          <input type="password" class="login-field" name="password" placeholder="Password"
+          id="login-pass" required>
+          <label class="login-field-icon fui-lock-16" for="login-pass"></label>
+        </div>
+        <input data-action="signUp" type="submit" value="Register for free" class="btn btn-info btn-large btn-block" href="#"></input>
+        <p class="footnote">By registering you confirm that you are 13 years of age or older.</p>
+      </form>
+    </aside>
+    
+    <aside class="frontpage-logged-in">
+      <p>Go to your <strong><a href="#" class="open-login">home page</a></strong> to create a world!</p>
+      
+      <p><strong><a href="#" class="logout">Logout</a></strong></p>
     </aside>
     
     <aside class="welcome">
