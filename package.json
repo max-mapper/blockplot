@@ -1,6 +1,11 @@
 {
   "name": "blockplot",
-  "version": "0.0.0",
+  "version": "0.0.1-2",
+  "subdomain": "blockplot",
+  "domains": [
+    "blockplot.com",
+    "www.blockplot.com"
+  ],
   "type": "app",
   "dependencies": {
     "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
@@ -8,5 +13,8 @@
   },
   "scripts": {
     "start": "node node_modules/hoodie-app/lib/hoodie-app.js"
+  },
+  "engines": {
+    "node": "0.8.x"
   }
 }

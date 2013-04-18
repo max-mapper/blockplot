@@ -35,7 +35,7 @@ body {
 /* flat ui overrides */
 
   /* original color: #1abc9c */
-  .login-screen { background-color: #4f99c4 !important; }
+  .login-screen { background-color: #4f99c4 !important; background: #4f99c4 url('../img/bg.png') repeat top center; }
   .form .login-field:focus + .login-field-icon { color: #4f99c4; }
   textarea:focus,
     input[type="text"]:focus,
