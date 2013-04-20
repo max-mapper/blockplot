@@ -1,15 +1,17 @@
-var hoodie  = new Hoodie()
-
+var gravatar = require('gravatar')
+var hoodie  = new Hoodie("/_api")
 var formContainer = $('#default-popup')
 var frontPageForm = $('.front-page-form')
 
-hoodie.account.authenticate().then(function(){}, isLoggedOut)
+if (hoodie.account.username) isLoggedIn(hoodie.account.username)
+else isLoggedOut()
 
 function authError(e) {
   console.log('auth err', e)
+  logout()
 }
 
-hoodie.account.on('authenticated', isLoggedIn)
+hoodie.account.on('signin', isLoggedIn)
 hoodie.account.on('signout', isLoggedOut)
 hoodie.on('account:error:unauthenticated remote:error:unauthenticated', authError)
 
@@ -22,12 +24,20 @@ function closeDialog() {
 }
 
 function isLoggedIn(user) {
+  console.log('isloggedin')
   $('.greeting').text('Hello ' + user)
-  formContainer.html($('.welcome').html())
   frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
+  formContainer.html($('.welcome').html())
+  setTimeout(function() {
+    getGravatar(function(err, url) {
+      if (err) return
+      formContainer.find('.gravatar').append('<img src="' + url + '">')
+    })
+  }, 100)
 }
 
 function isLoggedOut() {
+  console.log('isloggedout')
   $('.greeting').text('')
   formContainer.html($('.form-container').html())
   formContainer.find('.form').html($('.login-form').html())
@@ -53,6 +63,20 @@ function fieldParent(form, field) {
 
 function logout() {
   hoodie.account.signOut()
+}
+
+function getGravatar(cb) {
+  hoodie.store.findAll('email')
+    .done(function (objects) {
+      if (objects.length === 0) return cb('no email stored')
+      var email = objects[0].email
+      if (!email) return cb('no email stored')
+      var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: '404'})
+      cb(false, gravURL)
+    })
+    .fail(function(err) {
+      cb(err)
+    })
 }
 
 function missing(form, field) {
@@ -99,10 +123,9 @@ function submitSignupForm(e) {
   var data = getLoginFormData(form)
   if (!validate(form)) return
   form.find('input').addClass('disabled')
-  hoodie.store.add('email', data.email)
   hoodie.account.signUp(data.username, data.password)
     .done(function(user) {
-      isLoggedIn(user)
+      hoodie.store.add('profile', {email: data.email})
       form.find('input.disabled').removeClass('disabled')
       window.scrollTo(0,0)
       $('.open-login').click()
@@ -124,11 +147,10 @@ function submitLoginForm(e) {
   if (!validate(form)) return
   var icon = $('.login-screen .login-icon > img')
   icon.addClass('rotating')
-  hoodie.store.add('email', data.email)
   hoodie.account[data.action](data.username, data.password)
     .done(function(user) {
+      if (data.action === 'signUp') hoodie.store.add('email', {email: data.email})
       icon.removeClass('rotating')
-      isLoggedIn(user)
     })
     .fail(function(err) {
       icon.removeClass('rotating')
@@ -136,6 +158,15 @@ function submitLoginForm(e) {
       if (err.error && err.error === "conflict") msg = "Username already exists."
       form.find('.messages').html('<p>' + msg + '</p>')
     })
+}
+
+function uploadRegion(evt) {
+  // save an object
+  // var type = 'note';
+  // var id = 'abc4567';
+  // var attributes = {color: 'red', name: 'relax'};
+  // hoodie.store.save(type, id, attributes)
+  //   .done(function (object) {});
 }
 
 $(document)
@@ -146,7 +177,7 @@ $(document)
   .on('click', '.logout', logout)
   .on('submit', '.login-screen .form', submitLoginForm)
   .on('submit', '.front-page-form .form', submitSignupForm)
-  
+  .on('change', '.regionUploader', uploadRegion)
 
 // Cache the Window object
 $window = $(window);
