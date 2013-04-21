@@ -9,7 +9,10 @@
   "type": "app",
   "dependencies": {
     "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
-    "worker-users": "git://github.com/hoodiehq/worker-users.git"
+    "worker-users": "git://github.com/hoodiehq/worker-users.git",
+    "filed": "0.0.7",
+    "ecstatic": "~0.4.2",
+    "request": "~2.16.6"
   },
   "scripts": {
     "start": "node node_modules/hoodie-app/lib/hoodie-app.js"

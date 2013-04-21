@@ -26,72 +26,19 @@
     <link rel="stylesheet" href="flatui/css/flat-ui.css">
     <link rel="stylesheet" href="css/avgrund.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/world.css">
   </head>
   <body>
   
     <aside id="default-popup" class="avgrund-popup">
     </aside>
-    
-    <section id="first" class="section">
-      <article>
-        <div class="logo"></div>
-        <div class="tile">
-          <a class="btn btn-info btn-large btn-block open-login" href="#"><span>Login or Sign Up <span class="menu-icon"></span></span></a>
-          <a class="btn btn-info btn-large btn-block btn-excite" href="#">Try a Demo World</a>
-        </div>
-      </article>
-    </section>
-    
-    <section id="second" class="section" data-speed="4" data-type="background">
-      <center>
-        <h1 class="demo-logo">
-          Share your world online.
-        </h1>
-        <small>No plugins or downloads required</small>
-        
-      </center>
-    </section>
-    
-    <section id="third" class="section" data-speed="8" data-type="background" data-offsetY="250"> 
-    <div class="container">
-      <div class="span4">
-        <div class="demo-text-box prl">
-          <h3 class="demo-panel-title">Play On The Web</h3>
-          
-          <p>
-            <strong>BlockPlot</strong> is a web app where you can create new 3D worlds or upload existing worlds from other popular voxel apps and share them online with your friends.
-          </p>
-          <p>
-            It is made by the team that created <strong><a target="_blank" href="http://voxeljs.com">Voxel.js</a></strong>, the most advanced open source JavaScript technology for rendering voxel worlds in web browsers.
-          </p>
-          <p class="poweredby">
-            <small>POWERED BY</small>
-            <a target="_blank" href="http://voxeljs.com"><img src="img/voxeljslogo.png"></a>
-          </p>
-          </div>
-        </div>
-        <div class="span4">
-          <div class="demo-text-box prl">
-            <h3 class="demo-panel-title">Requirements</h3>
-            <p>
-              BlockPlot requires a web browser that supports <strong><a href="http://get.webgl.org" target="_blank">WebGL</a></strong>. It will work on most computers that can play other 3D video games.
-            </p>
-            <p>
-              You can find out if your browser supports WebGL by visiting <strong><a href="http://get.webgl.org/" target="_blank">this test page</a></strong>.
-            </p>
-          </div>
-        </div>
-        <div class="span4">
-          <div class="demo-text-box prl front-page-form">
-            <h3 class="demo-panel-title">Reserve Your Plot</h3>
-            <p></p>
-          </div>
-        </div>
-      </div>
-    </section>
   
     <div class="open-menu">
       <a class="greeting"></a>
+    </div>
+    
+    <div class="content">
+      
     </div>
     
     <aside class="form-container">
@@ -100,7 +47,6 @@
           <img src="img/chicken.png" alt="Welcome to BlockPlot">
         </div>
         <form class="form">
-          
         </form>
       </div>
     </aside>
@@ -177,7 +123,7 @@
         <div class="demo-browser-side">
           <div class="gravatar"></div>
           <div class="demo-browser-action">
-            <a href="/world" class="btn btn-danger btn-large btn-block">
+            <a class="btn btn-danger btn-large btn-block" target="_blank">
               Create
             </a>
             <a class="btn btn-large btn-block logout" target="_blank">
@@ -196,6 +142,41 @@
         </div>
       </div>
     </aside>
+
+    <aside class="notLoggedIn">
+      <div class="container">
+        <div class="demo-headline">
+          <h1 class="demo-logo">
+            <small>You aren't logged in!</small><br>
+          </h1>
+          <a class="btn btn-info btn-large btn-block open-login" href="#">Login or Sign Up</a>
+          
+        </div>
+      </div>
+    </aside>
+    
+    <aside class="newWorld">
+      <div class="container">
+        <div class="span1"></div>
+        <div class="span4">
+          <div class="demo-download">
+            <img src="img/hammer.png">
+          </div> <a href="" class="btn btn-primary btn-large btn-block">Start From Scratch</a>
+
+          <p
+          class="demo-download-text">Start with an empty world</p>
+        </div>
+        <div class="span1"></div>
+        <div class="span4">
+          <div class="demo-download">
+            <img src="img/floppy.png">
+          </div> <a href="" class="btn btn-primary btn-large btn-block">Import Existing World</a>
+          <p
+          class="demo-download-text">Load .mca files from Minecraft</p>
+        </div>
+        <div class="span1"></div>
+      </div>
+    </aside>
     
     <div class="avgrund-cover"></div>
     <script type="text/javascript" src="js/vendor/jquery-1.9.1.js"></script>
@@ -204,7 +185,7 @@
     <script type="text/javascript" src="js/vendor/hoodie.js"></script>
     <script type="text/javascript" src="js/vendor/bundle.js"></script>
     <script type="text/javascript" src="js/common.js"></script>
-    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/world.js"></script>
 
   </body>
 </html>
