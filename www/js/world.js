@@ -1,7 +1,21 @@
+$(document)
+  .on('click', '#scratch', createNewWorld)
+  .on('click', '#import', showImportPopup)
+  
 var container = $('.content')
 
 if (hoodie.account.username) route()
 else notLoggedIn()
+
+function showImportPopup(e) {
+  e.preventDefault()
+  Avgrund.show('#import-popup')
+}
+
+function createNewWorld(e) {
+  e.preventDefault()
+  
+}
 
 function newWorld() {
   container.html($('.newWorld').html())
