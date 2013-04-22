@@ -7,7 +7,7 @@ $(document)
   .on('submit', '.login-screen .form', submitLoginForm)
   
 var gravatar = require('gravatar')
-var hoodie  = new Hoodie("/_api")
+var hoodie  = new Hoodie("http://blockplot.jit.su/_api")
 
 var formContainer = $('#default-popup')
 var frontPageForm = $('.front-page-form')
