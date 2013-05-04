@@ -1,26 +1,18 @@
 {
   "name": "blockplot",
-  "version": "0.0.1-4",
+  "version": "0.0.1",
   "subdomain": "blockplot",
-  "domains": [
-    "blockplot.com",
-    "www.blockplot.com"
-  ],
-  "type": "app",
   "dependencies": {
-    "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
-    "worker-users": "git://github.com/hoodiehq/worker-users.git",
-    "filed": "0.0.7",
-    "ecstatic": "~0.4.2",
-    "request": "~2.16.6"
+    "gravatar": "~1.0.6",
+    "level-js": "~1.0.1"
   },
-  "bundleDependencies": [
-    "hoodie-app"
-  ],
   "scripts": {
-    "start": "node node_modules/hoodie-app/lib/hoodie-app.js"
+    "start": "beefy main.js:index-bundle.js world.js:world-bundle.js"
   },
   "engines": {
     "node": "0.8.x"
+  },
+  "devDependencies": {
+    "beefy": "~0.3.0"
   }
 }
