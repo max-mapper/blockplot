@@ -1,10 +1,6 @@
 var hoodie = require('./js/common')()
-var mca2js = require('mca2js')
-var leveljs = require('level-js')
-window.db = leveljs('blocks')
-db.open(function onopen() { })
-
-var crunch = require('voxel-crunch')
+var voxelUtils = require('./js/voxel')
+window.voxelUtils = voxelUtils
 
 $(document)
   .on('click', '#scratch', createNewWorld)
@@ -55,30 +51,12 @@ function handleFileSelect(evt) {
   var parts = file.name.split('.')
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
-  var pending = 0
-  var count = 0
-  var done = false
   reader.onloadend = function() {
-    var converter = mca2js()
-    console.time('load')
-    converter.on('data', function(chunk) {
-      pending++
-      count++
-      console.log(count)
-      var rle = crunch.encode(chunk.voxels)
-      var key = chunk.position.join('|')
-      key += '|' + chunk.voxels.length
-      db.put(key, rle, function (err) {
-        if (err) console.error(chunk, err)
-        pending--
-        if (done && pending === 0) console.timeEnd('load')
-      })
-      // crunch.decode(rle, new Uint32Array(chunk.voxels.length))
+    voxelUtils.saveRegion(reader.result, parts[1], parts[2], {}, function(errs) {
+      if (errs) console.log(errs)
+      try { Avgrund.hide() } catch(e){ }
+      voxelUtils.initGame()
     })
-    converter.on('end', function(){
-      done = true
-    })
-    converter.convert(reader.result, parts[1], parts[2])
   }
   reader.readAsArrayBuffer(file)
 }

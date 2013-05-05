@@ -4,7 +4,7 @@
   "subdomain": "blockplot",
   "dependencies": {
     "gravatar": "~1.0.6",
-    "level-js": "~1.0.1"
+    "voxel-level": "0.0.0"
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js world.js:world-bundle.js"
