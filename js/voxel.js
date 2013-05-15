@@ -1,7 +1,6 @@
 var createGame = require('voxel-hello-world')
 var mca2js = require('mca2js')
 var fly = require('voxel-fly')
-var crunch = require('voxel-crunch')
 var voxelLevel = require('voxel-level')
 var bundle = require('voxel-bundle')
 var level = voxelLevel('blocks', function ready() {})
