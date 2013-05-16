@@ -10,8 +10,8 @@ module.exports = function() {
     .on('click', '.logout', logout)
     .on('submit', '.login-screen .form', submitLoginForm)
 
-  // var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
-  var hoodie  = new Hoodie("http://blockplot.dev/_api/")
+  var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
+  // var hoodie  = new Hoodie("http://blockplot.dev/_api/")
 
   var formContainer = $('#default-popup')
   var frontPageForm = $('.front-page-form')
