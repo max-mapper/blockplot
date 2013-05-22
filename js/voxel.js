@@ -1,7 +1,7 @@
 var createGame = require('voxel-hello-world')
-var mca2js = require('mca2js')
 var fly = require('voxel-fly')
 var voxelLevel = require('voxel-level')
+var workerstream = require('workerstream')
 var bundle = require('voxel-bundle')
 var blockInfo = require('minecraft-blockinfo')
 var level = voxelLevel('blocks', function ready() {})
@@ -76,22 +76,24 @@ function initGame(options) {
   })
 }
 
-function saveRegion(buffer, regionX, regionZ, options, cb) {
-  var converter = mca2js(options)
-  var pending = 0
-  var done = false
-  var errors = {}
-  converter.on('data', function(chunk) {
-    pending++
-    level.store(chunk, function afterStore(err) {
-      if (err) errors[key] = err
-      pending--
-      if (done && pending === 0) cb(Object.keys(errors).length > 0 ? errors : false)
-    })
+function saveRegion(buffer, regionX, regionZ, cb) {
+  var progress = $('.progress.hidden')
+  progress.removeClass('hidden')
+  var progressBar = progress.find('.bar')
+  progressBar.css('width', '0%')
+  var worker = workerstream('convert-worker.js')
+  worker.on('data', function(data) {
+    if (data.progress) {
+      progressBar.css('width', data.progress + '%')
+    } else if (data.done) {
+      progressBar.css('width', '100%')
+      cb(data.errors)
+    } else {
+      console.log(data)
+    }
   })
-  converter.on('end', function(){
-    done = true
-  })
-  converter.convert(buffer, regionX, regionZ)
+  worker.write({regionX: regionX, regionZ: regionZ})
+  worker.write(buffer)
+  worker.end()
 }
 

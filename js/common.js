@@ -9,9 +9,14 @@ module.exports = function() {
     .on('submit', '.front-page-form .form', submitSignupForm)
     .on('click', '.logout', logout)
     .on('submit', '.login-screen .form', submitLoginForm)
+    .on('click', '.file-select', function(e) {
+      var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
+      fileInput.click()
+    })
+    
 
-  var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
-  // var hoodie  = new Hoodie("http://blockplot.dev/_api/")
+  // var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
+  var hoodie  = new Hoodie("http://blockplot.dev/_api/")
 
   var formContainer = $('#default-popup')
   var frontPageForm = $('.front-page-form')
@@ -171,6 +176,13 @@ module.exports = function() {
         if (err.error && err.error === "conflict") msg = "Username already exists."
         form.find('.messages').html('<p>' + msg + '</p>')
       })
+  }
+  
+  function click(el) {
+    // Simulate click on the element.
+    var evt = document.createEvent('Event')
+    evt.initEvent('click', true, true)
+    el.dispatchEvent(evt)
   }
 
   return hoodie

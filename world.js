@@ -52,7 +52,7 @@ function handleFileSelect(evt) {
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
   reader.onloadend = function() {
-    voxelUtils.saveRegion(reader.result, parseInt(parts[1]), parseInt(parts[2]), {}, function(errs) {
+    voxelUtils.saveRegion(reader.result, +parts[1], +parts[2], function(errs) {
       if (errs) console.log(errs)
       try { Avgrund.hide() } catch(e){ }
       voxelUtils.initGame()

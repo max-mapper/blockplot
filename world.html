@@ -34,7 +34,20 @@
     </aside>
     
     <aside id="import-popup" class="avgrund-popup">
-      <input type="file" id="file" name="file" />
+      <p>
+        <div class="message">
+          Choose a <code>.mca</code> file to upload.
+        </div>
+      </p>
+      <p>
+        <div class="progress hidden">
+          <div class="bar" style="width: 0%;"></div>
+        </div>
+      </p>
+      <p>
+        <a href="#" class="btn btn-large btn-block btn-info file-select">Choose File</a>
+      </p>
+      <input class="hidden" type="file" id="file" name="file" />
     </aside>
   
     <div class="open-menu">
