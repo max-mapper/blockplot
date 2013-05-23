@@ -3,7 +3,6 @@ var voxelLevel = require('voxel-level')
 var regionX, regionZ
 window = self
 console = {log: function(msg) { self.postMessage({log: msg}) }}
-
 function convert(buffer, X, Z) {
   var level = voxelLevel('blocks', function ready() {
     var converter = mca2js()
@@ -33,8 +32,9 @@ function convert(buffer, X, Z) {
 
 self.onmessage = function(event) {
   var data = event.data
-  if (data.regionX) regionX = data.regionX
-  if (data.regionZ) regionZ = data.regionZ
+  var keys = Object.keys(data)
+  if (keys.indexOf('regionX') > -1) regionX = data.regionX
+  if (keys.indexOf('regionZ') > -1) regionZ = data.regionZ
   if (data instanceof ArrayBuffer) {
     convert(data, regionX, regionZ)
   }

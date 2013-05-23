@@ -24,8 +24,6 @@ function initGame(options) {
     materials.push(type)
   })
 
-  console.log(materials) 
-  
   var pos = [0, 0, 0]
   var chunkDimensions = [16, 16, 16]
   var gameChunkSize = 16
