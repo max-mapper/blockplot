@@ -31,6 +31,7 @@ body {
 
 .front-page-form .form:before { content: none; }
 .front-page-form .form .login-field { width: 220px; }
+.short-form { width: 300px; }
 
 /* flat ui overrides */
   .demo-browser { background: #2c3e50; margin: 0; padding-top: 0px; border-radius: 6px; }

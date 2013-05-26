@@ -2,6 +2,10 @@ var hoodie = require('./js/common')()
 var voxelUtils = require('./js/voxel')
 window.voxelUtils = voxelUtils
 
+var worldName = window.location.hash
+if (worldName.length < 2) worldName = false
+else worldName = worldName.substr(1, worldName.length - 1)
+
 $(document)
   .on('click', '#scratch', createNewWorld)
   .on('click', '#import', showImportPopup)
@@ -52,8 +56,7 @@ function handleFileSelect(evt) {
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
   reader.onloadend = function() {
-    console.log('saveRegion', parseInt(parts[1]), parseInt(parts[2]))
-    voxelUtils.saveRegion(reader.result, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
+    voxelUtils.saveRegion(reader.result, worldName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
       if (errs) console.log(errs)
       try { Avgrund.hide() } catch(e){ }
       voxelUtils.initGame()

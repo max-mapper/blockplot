@@ -9,6 +9,21 @@ module.exports = function() {
     .on('submit', '.front-page-form .form', submitSignupForm)
     .on('click', '.logout', logout)
     .on('submit', '.login-screen .form', submitLoginForm)
+    .on('click', '.new-world', showNewWorldForm)
+    .on('submit', '.new-world-form', function(e) {
+      e.preventDefault()
+      var worldName = $(e.target).find('#world-name').val()
+      var submit = $(e.target).find('input[type="submit"]')
+      submit.hide()
+      hoodie.store.add('world', {name: worldName})
+        .done(function(user) {
+          window.location.href = "/world.html#" + worldName
+        })
+        .fail(function(e) {
+          submit.show()
+        })
+      return false
+    })
     .on('click', '.file-select', function(e) {
       var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
       fileInput.click()
@@ -51,6 +66,14 @@ module.exports = function() {
         if (err) return
         formContainer.find('.gravatar').append('<img src="' + url + '">')
       })
+      getWorlds(function(err, worlds) {
+        if (err) return
+        var content = $('.demo-browser-content')
+        content.html('')
+        worlds.map(function(world) {
+          content.append('<a href="' + "/world.html#" + world.name + '">' + world.name + '</a>')
+        })
+      })
     }, 100)
   }
 
@@ -82,13 +105,22 @@ module.exports = function() {
   function logout() {
     hoodie.account.signOut()
   }
+  
+  function getWorlds(cb) {
+    hoodie.store.findAll('world')
+      .done(function (objects) {
+        if (objects.length === 0) return cb(false, false)
+        cb(false, objects)
+      })
+      .fail(cb)
+  }
 
   function getGravatar(cb) {
     hoodie.store.findAll('email')
       .done(function (objects) {
-        if (objects.length === 0) return cb('no email stored')
+        if (objects.length === 0) return cb(false, false)
         var email = objects[0].email
-        if (!email) return cb('no email stored')
+        if (!email) return cb(false, false)
         var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: '404'})
         cb(false, gravURL)
       })
@@ -176,6 +208,10 @@ module.exports = function() {
         if (err.error && err.error === "conflict") msg = "Username already exists."
         form.find('.messages').html('<p>' + msg + '</p>')
       })
+  }
+  
+  function showNewWorldForm(e) {
+    $('.demo-browser-content').html($('.new-world-form').html())
   }
   
   function click(el) {

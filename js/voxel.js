@@ -66,7 +66,7 @@ function initGame(options) {
         var cy = y - chunk.position[1]
         var cz = z - chunk.position[2]
         var cidx = cx + (cy * gameChunkSize) + (cz * gameChunkSize * gameChunkSize)
-        var pos = [x,y,z]
+        var pos = [x, y, z]
         var type = blockInfo.blocks['_' + val].type
         game.setBlock(pos, type)
       })
@@ -74,7 +74,7 @@ function initGame(options) {
   })
 }
 
-function saveRegion(buffer, regionX, regionZ, cb) {
+function saveRegion(buffer, worldName, regionX, regionZ, cb) {
   var progress = $('.progress.hidden')
   progress.removeClass('hidden')
   var progressBar = progress.find('.bar')
@@ -90,7 +90,8 @@ function saveRegion(buffer, regionX, regionZ, cb) {
       console.log(data)
     }
   })
-  worker.write({regionX: regionX, regionZ: regionZ})
+  worker.on('error', function(e) { console.log('err', e)})
+  worker.write({worldName: worldName, regionX: regionX, regionZ: regionZ})
   worker.write(buffer)
   worker.end()
 }

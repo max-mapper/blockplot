@@ -177,7 +177,7 @@
         <div class="demo-browser-side">
           <div class="gravatar"></div>
           <div class="demo-browser-action">
-            <a href="/world.html" class="btn btn-danger btn-large btn-block">
+            <a class="btn btn-danger btn-large btn-block new-world">
               Create
             </a>
             <a class="btn btn-large btn-block logout" target="_blank">
@@ -191,9 +191,24 @@
           </h6>
         </div>
         <div class="demo-browser-content">
-          <h3>Your Worlds</h3>
-          You haven't created a world yet!
+          <!-- <h3>Your Worlds</h3>
+          You haven't created a world yet! -->
+          Loading...
         </div>
+      </div>
+    </aside>
+    
+    <aside class="new-world-form">
+      <div class="short-form">
+        <form class="new-world-form">
+          <div class="messages"></div>
+          <h3>New World</h3>
+          <div class="control-group">
+            <input type="text" class="name-field" name="name" value="" placeholder="World Name"
+            id="world-name" required>
+          </div>
+          <input type="submit" value="Create" class="create-world btn btn-info btn-large btn-block" href="#"></input>
+        </form>
       </div>
     </aside>
     
