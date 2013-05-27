@@ -1,4 +1,5 @@
 var gravatar = require('gravatar')
+var Hoodie = require('hoodie')
 
 module.exports = function() {
   $(document)
@@ -71,7 +72,7 @@ module.exports = function() {
         var content = $('.demo-browser-content')
         content.html('')
         worlds.map(function(world) {
-          content.append('<a href="' + "/world.html#" + world.name + '">' + world.name + '</a>')
+          content.append('<p><a href="' + "/world.html#" + world.name + '">' + world.name + '</a></p>')
         })
       })
     }, 100)

@@ -17,7 +17,7 @@ function convert(buffer, X, Z) {
         self.postMessage({ progress: percent })
         progress = percent
       }
-      level.store(chunk, function afterStore(err) {
+      level.store(worldName, chunk, function afterStore(err) {
         if (err) errors[key] = err
         pending--
         if (done && pending === 0) {

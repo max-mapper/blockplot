@@ -8,8 +8,7 @@ var level = voxelLevel('blocks', function ready() {})
 
 module.exports = {
   initGame: initGame,
-  saveRegion: saveRegion,
-  level: level
+  saveRegion: saveRegion
 }
 
 function initGame(options) {
@@ -57,7 +56,7 @@ function initGame(options) {
       dims: [gameChunkSize, gameChunkSize, gameChunkSize]
     }
     game.showChunk(empty)
-    level.load(chunkPosition, chunkDimensions, function(err, chunk) {
+    level.load(options.worldName, chunkPosition, chunkDimensions, function(err, chunk) {
       if (err) return
       var chunkBundle = bundle(chunk)
       chunkBundle.extract(function(x, y, z, val, idx) {
@@ -91,6 +90,7 @@ function saveRegion(buffer, worldName, regionX, regionZ, cb) {
     }
   })
   worker.on('error', function(e) { console.log('err', e)})
+  console.log('write', {worldName: worldName, regionX: regionX, regionZ: regionZ})
   worker.write({worldName: worldName, regionX: regionX, regionZ: regionZ})
   worker.write(buffer)
   worker.end()

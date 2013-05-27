@@ -1,6 +1,8 @@
 var hoodie = require('./js/common')()
 var voxelUtils = require('./js/voxel')
+var voxelLevel = require('voxel-level')
 window.voxelUtils = voxelUtils
+var level
 
 var worldName = window.location.hash
 if (worldName.length < 2) worldName = false
@@ -13,8 +15,10 @@ $(document)
 
 var container = $('.content')
 
-if (hoodie.account.username) route()
-else notLoggedIn()
+level = voxelLevel('blocks', function ready() {
+  if (hoodie.account.username) route()
+  else notLoggedIn()
+})
 
 function showImportPopup(e) {
   e.preventDefault()
@@ -30,7 +34,15 @@ function newWorld() {
 }
 
 function loadWorld(id) {
-  console.log('load world', id)
+  // verify that there is world data to load
+  var iter = level.db.iterator({ start: worldName, limit: 1 })
+  iter.next(function (err, key, value) {
+    if (err || !key || key.indexOf(worldName) < 0 ) {
+      newWorld()
+      return
+    }
+    voxelUtils.initGame({ worldName: worldName })
+  })
 }
 
 function notLoggedIn() {
@@ -39,7 +51,7 @@ function notLoggedIn() {
 
 function route() {
   var hash = window.location.hash
-  if (hash.length === 0) newWorld()
+  if (hash.length === 0) return document.location.href = "/"
   else loadWorld(hash.slice(1, hash.length))
 }
 
@@ -56,11 +68,36 @@ function handleFileSelect(evt) {
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
   reader.onloadend = function() {
+    console.log('saveRegion', worldName)
     voxelUtils.saveRegion(reader.result, worldName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
       if (errs) console.log(errs)
       try { Avgrund.hide() } catch(e){ }
-      voxelUtils.initGame()
+      voxelUtils.initGame({ worldName: worldName })
     })
   }
   reader.readAsArrayBuffer(file)
 }
+
+function clearData (callback) {
+  indexedDB.webkitGetDatabaseNames().onsuccess = function(e){
+    var list = e.target.result
+    if (!list) return callback()
+    list = Object.keys(list).map(function(k) { return list[k] })
+
+    if (!list.length) return callback()
+
+    var ret = 0
+    
+    function done (e) {
+      if (++ret == list.length) callback()
+    }
+    
+    list.forEach(function (f) {
+      indexedDB.deleteDatabase(f)
+        .onsuccess = done
+        .onerror = done
+    })
+  }
+}
+
+window.clearData = clearData
