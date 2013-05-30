@@ -68,7 +68,6 @@ function handleFileSelect(evt) {
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
   reader.onloadend = function() {
-    console.log('saveRegion', worldName)
     voxelUtils.saveRegion(reader.result, worldName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
       if (errs) console.log(errs)
       try { Avgrund.hide() } catch(e){ }

@@ -32,7 +32,7 @@ module.exports = function() {
     
 
   // var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
-  var hoodie  = new Hoodie("http://blockplot.dev/_api/")
+  var hoodie  = new Hoodie("http://127.0.0.1:8080/_api/")
 
   var formContainer = $('#default-popup')
   var frontPageForm = $('.front-page-form')
@@ -64,13 +64,15 @@ module.exports = function() {
     formContainer.html($('.welcome').html())
     setTimeout(function() {
       getGravatar(function(err, url) {
-        if (err) return
+        if (err || !url) return
         formContainer.find('.gravatar').append('<img src="' + url + '">')
       })
       getWorlds(function(err, worlds) {
         if (err) return
         var content = $('.demo-browser-content')
         content.html('')
+        console.log(worlds)
+        if (worlds.length === 0) content.html("You haven't created any worlds yet!")
         worlds.map(function(world) {
           content.append('<p><a href="' + "/world.html#" + world.name + '">' + world.name + '</a></p>')
         })
@@ -110,7 +112,7 @@ module.exports = function() {
   function getWorlds(cb) {
     hoodie.store.findAll('world')
       .done(function (objects) {
-        if (objects.length === 0) return cb(false, false)
+        if (objects.length === 0) return cb(false, [])
         cb(false, objects)
       })
       .fail(cb)

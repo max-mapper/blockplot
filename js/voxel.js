@@ -4,7 +4,7 @@ var voxelLevel = require('voxel-level')
 var workerstream = require('workerstream')
 var bundle = require('voxel-bundle')
 var blockInfo = require('minecraft-blockinfo')
-var level = voxelLevel('blocks', function ready() {})
+var level = voxelLevel('blocks', function ready() { })
 
 module.exports = {
   initGame: initGame,
@@ -90,7 +90,6 @@ function saveRegion(buffer, worldName, regionX, regionZ, cb) {
     }
   })
   worker.on('error', function(e) { console.log('err', e)})
-  console.log('write', {worldName: worldName, regionX: regionX, regionZ: regionZ})
   worker.write({worldName: worldName, regionX: regionX, regionZ: regionZ})
   worker.write(buffer)
   worker.end()
