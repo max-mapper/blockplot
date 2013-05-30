@@ -37,11 +37,13 @@ function loadWorld(id) {
   // verify that there is world data to load
   var iter = level.db.iterator({ start: worldName, limit: 1 })
   iter.next(function (err, key, value) {
-    if (err || !key || key.indexOf(worldName) < 0 ) {
-      newWorld()
-      return
-    }
-    voxelUtils.initGame({ worldName: worldName })
+    iter.end(function(){
+      if (err || !key || key.indexOf(worldName) < 0 ) {
+        newWorld()
+        return
+      }
+      voxelUtils.initGame({ worldName: worldName })
+    })
   })
 }
 
@@ -78,20 +80,22 @@ function handleFileSelect(evt) {
 }
 
 function clearData (callback) {
+  if (!callback) callback = function() { console.log('done clearing') }
   indexedDB.webkitGetDatabaseNames().onsuccess = function(e){
     var list = e.target.result
     if (!list) return callback()
-    list = Object.keys(list).map(function(k) { return list[k] })
-
-    if (!list.length) return callback()
+    var dbs = []
+    for (var i = 0; i < list.length; i++) dbs.push(list[i])
+    
+    if (!dbs.length) return callback()
 
     var ret = 0
-    
+
     function done (e) {
-      if (++ret == list.length) callback()
+      if (++ret == dbs.length) callback()
     }
     
-    list.forEach(function (f) {
+    dbs.forEach(function (f) {
       indexedDB.deleteDatabase(f)
         .onsuccess = done
         .onerror = done

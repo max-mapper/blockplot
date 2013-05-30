@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "beefy": "~0.3.0",
-    "browserify": "~2.14.2",
-    "mca2js": "~0.1.0"
+    "browserify": "~2.14.2"
   }
 }
