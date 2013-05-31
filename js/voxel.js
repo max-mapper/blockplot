@@ -19,14 +19,12 @@ function initGame(options) {
   Object.keys(blockInfo.blocks).map(function(b) {
     var type = blockInfo.blocks[b].type
     var id = blockInfo.blocks[b].id
-    materials[id] = type
+    materials[id - 1] = type
   })
   
   var pos = [0, 0, 0]
   var chunkDimensions = [16, 16, 16]
   var gameChunkSize = 16
-  // var regionX = Math.floor((pos[0] >> 4) / 32)
-  // var regionZ = Math.floor((pos[2] >> 4) / 32)
   
   var game = require('voxel-hello-world')({
     generateChunks: false,
