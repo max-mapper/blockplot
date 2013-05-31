@@ -1,0 +1,12 @@
+{
+  "name": "hoodie-server",
+  "version": "1.0.0",
+  "type": "app",
+  "dependencies": {
+    "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
+    "hoodie-worker-users": "git://github.com/hoodiehq/worker-users.git"
+  },
+  "scripts": {
+    "start": "./node_modules/hoodie-app/bin/start --no-local-tld"
+  }
+}
