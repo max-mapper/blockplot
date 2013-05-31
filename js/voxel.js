@@ -45,7 +45,7 @@ function initGame(options) {
     game.controls.target().avatar.position.copy({x: pos[0], y: pos[1], z: pos[2]})
   }
   
-  var worldWorker = workerstream('world-worker.js')
+  var worldWorker = workerstream('world-worker-bundle.js')
   worldWorker.on('data', function(data) {
     if (data.ready && game.paused) return startGame()
     var chunk = {
@@ -72,7 +72,7 @@ function saveRegion(buffer, worldName, regionX, regionZ, cb) {
   progress.removeClass('hidden')
   var progressBar = progress.find('.bar')
   progressBar.css('width', '0%')
-  var worker = workerstream('convert-worker.js')
+  var worker = workerstream('convert-worker-bundle.js')
   worker.on('data', function(data) {
     if (data.progress) {
       progressBar.css('width', data.progress + '%')

@@ -14,7 +14,7 @@
     "workerstream": "~1.0.0"
   },
   "scripts": {
-    "start": "beefy main.js:index-bundle.js world.js:world-bundle.js convert-worker.js world-worker.js --debug=false -- --fast  --noparse=three"
+    "start": "beefy main.js:index-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast  --noparse=three"
   },
   "engines": {
     "node": "0.8.x"
