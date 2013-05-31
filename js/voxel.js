@@ -18,9 +18,10 @@ function initGame(options) {
   
   Object.keys(blockInfo.blocks).map(function(b) {
     var type = blockInfo.blocks[b].type
-    materials.push(type)
+    var id = blockInfo.blocks[b].id
+    materials[id] = type
   })
-
+  
   var pos = [0, 0, 0]
   var chunkDimensions = [16, 16, 16]
   var gameChunkSize = 16
@@ -49,23 +50,20 @@ function initGame(options) {
   var worldWorker = workerstream('world-worker.js')
   worldWorker.on('data', function(data) {
     if (data.ready && game.paused) return startGame()
-    game.setBlock(data.pos, data.type)
+    var chunk = {
+      position: data.position,
+      voxels: new Uint8Array(data.buffer),
+      dims: data.dimensions
+    }
+    game.showChunk(chunk)
   })
   worldWorker.on('error', function(e) { console.log('err', e)})
   worldWorker.write({ loadDB: 'blocks' })
   
   game.voxels.on('missingChunk', function(p) {
-    var chunkPosition = [p[0] * gameChunkSize, p[1] * gameChunkSize, p[2] * gameChunkSize]
-    var empty = {
-      position: p,
-      voxels: new Uint8Array(gameChunkSize * gameChunkSize * gameChunkSize),
-      dims: [gameChunkSize, gameChunkSize, gameChunkSize]
-    }
-    game.showChunk(empty)
     worldWorker.write({
       worldName: options.worldName,
-      position: chunkPosition,
-      dimensions: empty.dims,
+      position: p,
       gameChunkSize: gameChunkSize
     })
   })
@@ -89,7 +87,7 @@ function saveRegion(buffer, worldName, regionX, regionZ, cb) {
   })
   worker.on('error', function(e) { console.log('err', e)})
   worker.write({worldName: worldName, regionX: regionX, regionZ: regionZ})
-  worker.write(buffer)
+  worker.write(buffer, [buffer])
   worker.end()
 }
 

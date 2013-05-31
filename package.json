@@ -10,7 +10,8 @@
     "voxel-hello-world": "~0.5.0",
     "voxel-fly": "~0.1.0",
     "mca2js": "~0.2.0",
-    "hoodie": "0.1.28"
+    "hoodie": "0.1.28",
+    "workerstream": "~1.0.0"
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js world.js:world-bundle.js convert-worker.js world-worker.js --debug=false -- --fast  --noparse=three"

@@ -6,20 +6,18 @@ var level
 window = self
 console = {log: function(msg) { self.postMessage({log: msg}) }}
 
-function loadChunk(worldName, position, dimensions, gameChunkSize) {
-  level.load(worldName, position, dimensions, function(err, chunk) {
+function loadChunk(worldName, position, gameChunkSize) {
+  var p = position
+  var cs = gameChunkSize
+  var dimensions = [cs, cs, cs]
+  var chunkPosition = [p[0] * cs, p[1] * cs, p[2] * cs]
+  level.load(worldName, chunkPosition, dimensions, function(err, chunk) {
     if (err) return
-    var chunkBundle = bundle(chunk)
-    chunkBundle.extract(function(x, y, z, val, idx) {
-      if (!val) return
-      var cx = x - chunk.position[0]
-      var cy = y - chunk.position[1]
-      var cz = z - chunk.position[2]
-      var cidx = cx + (cy * gameChunkSize) + (cz * gameChunkSize * gameChunkSize)
-      var pos = [x, y, z]
-      var type = blockInfo.blocks['_' + val].type
-      self.postMessage({pos: pos, type: type})
-    })
+    self.postMessage({
+      position: p,
+      buffer: chunk.voxels.buffer,
+      dimensions: chunk.dimensions
+    }, [chunk.voxels.buffer])
   })
 }
 
@@ -28,5 +26,5 @@ self.onmessage = function(event) {
     self.postMessage({ready: true})
   })
   var data = event.data
-  loadChunk(data.worldName, data.position, data.dimensions, data.gameChunkSize)
+  loadChunk(data.worldName, data.position, data.gameChunkSize)
 }
