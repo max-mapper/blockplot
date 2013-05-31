@@ -13,7 +13,7 @@
     "hoodie": "0.1.28"
   },
   "scripts": {
-    "start": "beefy main.js:index-bundle.js world.js:world-bundle.js convert-worker.js --debug=false -- --fast  --noparse=three"
+    "start": "beefy main.js:index-bundle.js world.js:world-bundle.js convert-worker.js world-worker.js --debug=false -- --fast  --noparse=three"
   },
   "engines": {
     "node": "0.8.x"

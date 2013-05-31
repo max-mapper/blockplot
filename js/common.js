@@ -58,10 +58,10 @@ module.exports = function() {
   }
 
   function isLoggedIn(user) {
-    console.log('isloggedin')
     $('.greeting').text('Hello ' + user)
     frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
     formContainer.html($('.welcome').html())
+    // set timeout is because of some hoodie login race condition weirdness
     setTimeout(function() {
       getGravatar(function(err, url) {
         if (err || !url) return
@@ -70,8 +70,7 @@ module.exports = function() {
       getWorlds(function(err, worlds) {
         if (err) return
         var content = $('.demo-browser-content')
-        content.html('')
-        console.log(worlds)
+        content.html('<h3>Your Worlds</h3>')
         if (worlds.length === 0) content.html("You haven't created any worlds yet!")
         worlds.map(function(world) {
           content.append('<p><a href="' + "/world.html#" + world.name + '">' + world.name + '</a></p>')
@@ -81,7 +80,6 @@ module.exports = function() {
   }
 
   function isLoggedOut() {
-    console.log('isloggedout')
     $('.greeting').text('')
     formContainer.html($('.form-container').html())
     formContainer.find('.form').html($('.login-form').html())
