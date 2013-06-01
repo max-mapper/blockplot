@@ -110,6 +110,17 @@ function initGame(options) {
       })
     })
     
+    game.on('dirtyChunkUpdate', function(chunk) {
+      var storeChunk = {
+        position: chunk.position.map(function(p) { return p * gameChunkSize }),
+        voxels: chunk.voxels,
+        dimensions: chunk.dimensions
+      }
+      level.store(options.worldName, storeChunk, function afterStore(err) {
+        if (err) console.error('chunk store error', err)
+      })
+    })
+    
     if (!state) state = {
       player: {
         position: {x: 0, y: 0, z: 0},
