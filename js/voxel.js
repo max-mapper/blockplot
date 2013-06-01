@@ -3,6 +3,7 @@ var fly = require('voxel-fly')
 var voxelLevel = require('voxel-level')
 var workerstream = require('workerstream')
 var blockInfo = require('minecraft-blockinfo')
+var walk = require('voxel-walk')
 
 module.exports = {
   initGame: initGame,
@@ -70,7 +71,17 @@ function initGame(options) {
 
     window.game = game // for console debugging
     var makeFly = fly(game)
-    game.flyer = makeFly(game.controls.target())
+    var target = game.controls.target()
+    game.flyer = makeFly(target)
+    
+    
+    game.on('tick', function() {
+      walk.render(target.playerSkin)
+      var vx = Math.abs(target.velocity.x)
+      var vz = Math.abs(target.velocity.z)
+      if (vx > 0.001 || vz > 0.001) walk.stopWalking()
+      else walk.startWalking()
+    })
     
     var worldWorker = workerstream('world-worker-bundle.js')
     worldWorker.on('data', function(data) {

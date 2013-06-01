@@ -6,6 +6,7 @@
     "gravatar": "~1.0.6",
     "voxel-level": "1.0.0",
     "voxel-bundle": "0.0.0",
+    "voxel-walk": "git://github.com/flyswatter/voxel-walk.git",
     "minecraft-blockinfo": "~0.2.0",
     "voxel-hello-world": "~0.5.0",
     "voxel-fly": "~0.1.0",
