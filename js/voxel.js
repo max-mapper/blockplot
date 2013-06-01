@@ -5,6 +5,8 @@ var workerstream = require('workerstream')
 var blockInfo = require('minecraft-blockinfo')
 var walk = require('voxel-walk')
 
+var loadDelay = 10000 // milliseconds
+
 module.exports = {
   initGame: initGame,
   saveRegion: saveRegion
@@ -91,7 +93,9 @@ function initGame(options) {
         voxels: new Uint8Array(data.buffer),
         dims: data.dimensions
       }
-      game.showChunk(chunk)
+      setTimeout(function() {
+        game.showChunk(chunk)
+      }, 10 + ~~(Math.random() * loadDelay))
     })
     worldWorker.on('error', function(e) { console.log('err', e)})
     worldWorker.write({ loadDB: 'blocks' })
