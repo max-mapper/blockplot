@@ -32,12 +32,16 @@ body {
 .front-page-form .form:before { content: none; }
 .front-page-form .form .login-field { width: 220px; }
 .short-form { width: 300px; }
+.view-profile { font-size: 15px; padding-left: 0px !important; }
+.gravatar { height: 111px; }
 
 /* flat ui overrides */
   .demo-browser { background: #2c3e50; margin: 0; padding-top: 0px; border-radius: 6px; }
   .demo-browser-content { min-height: 271px; }
-  .demo-browser-action > .btn:before { margin-right: 8px;}
-  .demo-browser-action > .logout:before { content: ""; margin-right: 12px;}
+  .demo-browser-action > .btn:before { content: ""; margin-right: 12px;}
+  .demo-browser-action > .new-world:before { content: "\e004" !important; margin-right: 8px; }
+  .demo-browser-side { padding: 20px 20px 0 20px; }
+  .demo-browser-action { padding: 15px 0 12px; }
   /* original color: #1abc9c */
   .login-screen { background-color: #4f99c4 !important; background: #4f99c4 url('../img/bg.png') repeat top center; }
   .form .login-field:focus + .login-field-icon { color: #4f99c4; }

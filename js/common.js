@@ -58,6 +58,10 @@ module.exports = function() {
   }
 
   function isLoggedIn(user) {
+    window.location.href = "/user.html#" + user
+  }
+  
+  function loadProfile(user) {
     $('.greeting').text('Hello ' + user)
     frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
     formContainer.html($('.welcome').html())
@@ -117,12 +121,12 @@ module.exports = function() {
   }
 
   function getGravatar(cb) {
-    hoodie.store.findAll('email')
+    hoodie.store.findAll('profile')
       .done(function (objects) {
         if (objects.length === 0) return cb(false, false)
         var email = objects[0].email
         if (!email) return cb(false, false)
-        var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: '404'})
+        var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: 'retro'})
         cb(false, gravURL)
       })
       .fail(function(err) {
@@ -176,10 +180,13 @@ module.exports = function() {
     form.find('input').addClass('disabled')
     hoodie.account.signUp(data.username, data.password)
       .done(function(user) {
-        hoodie.store.add('profile', {email: data.email})
-        form.find('input.disabled').removeClass('disabled')
-        window.scrollTo(0,0)
-        $('.open-login').click()
+        var saveProfile = hoodie.store.add('profile', {email: data.email})
+          .done(function() {
+            form.find('input.disabled').removeClass('disabled')
+            window.scrollTo(0,0)
+            $('.open-login').click()
+          })
+          .fail(function(err) { alert('error saving profile!') })
       })
       .fail(function(err) {
         var msg = err.reason

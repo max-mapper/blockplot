@@ -1,0 +1,28 @@
+/* responsive css */
+.c { height: 100%; }
+@media screen and (min-width: 56em) {
+  
+  .left {
+    height: 100%;
+    padding: 20px 20px 0 20px;
+    float: left;
+    width: 20%;
+    background: #2c3e50;
+  }
+  .right {
+    background: #34495e;
+    border-radius: 0 0 6px;
+    overflow: hidden;
+    padding: 21px 0 0 20px;
+    float: left;
+    width: 80%;
+  }
+}
+html, body { height: 100%; background: #2c3e50; color: white; }
+
+.pattern {
+  background: #34495e;
+  height: 100%;
+  overflow: hidden;
+}
+
