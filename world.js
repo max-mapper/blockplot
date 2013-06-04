@@ -2,11 +2,7 @@ var hoodie = require('./js/common')()
 var voxelUtils = require('./js/voxel')
 var voxelLevel = require('voxel-level')
 window.voxelUtils = voxelUtils
-var level
-
-var worldName = window.location.hash
-if (worldName.length < 2) worldName = false
-else worldName = worldName.substr(1, worldName.length - 1)
+var level, worldName, userName
 
 $(document)
   .on('click', '#scratch', createNewWorld)
@@ -14,6 +10,8 @@ $(document)
   .on('change', '#file', handleFileSelect)
 
 var container = $('.content')
+var title = $('.title')
+
 
 level = voxelLevel('blocks', function ready() {
   if (hoodie.account.username) route()
@@ -33,18 +31,28 @@ function newWorld() {
   container.html($('.newWorld').html())
 }
 
-function loadWorld(id) {
+function loadWorld(user, id) {
   // verify that there is world data to load
-  var iter = level.db.iterator({ start: worldName, limit: 1 })
+  var levelName = user + '/' + id
+  var iter = level.db.iterator({ start: levelName, limit: 1 })
   iter.next(function (err, key, value) {
     iter.end(function(){
-      if (err || !key || key.indexOf(worldName) < 0 ) {
+      if (err || !key || key.indexOf(levelName) < 0 ) {
         newWorld()
         return
       }
-      voxelUtils.initGame({ worldName: worldName })
+      voxelUtils.initGame({ worldName: levelName })
     })
   })
+}
+
+function getWorlds(cb) {
+  hoodie.store.findAll('world')
+    .done(function (objects) {
+      if (objects.length === 0) return cb(false, [])
+      cb(false, objects)
+    })
+    .fail(cb)
 }
 
 function notLoggedIn() {
@@ -53,8 +61,20 @@ function notLoggedIn() {
 
 function route() {
   var hash = window.location.hash
-  if (hash.length === 0) return document.location.href = "/"
-  else loadWorld(hash.slice(1, hash.length))
+  if (hash.length < 2) worldName = false
+  else hash = hash.substr(1, hash.length - 1)
+
+  var names = hash.split('/')
+  if (names.length < 2) {
+    return document.location.href = "/"
+    worldName = false
+  } else {
+    userName = names[0]
+    worldName = names[1]
+  }
+
+  if (worldName) title.text(userName + '/' + worldName)
+  loadWorld(userName, worldName)
 }
 
 hoodie.account.on('signin signout', function() {
@@ -69,11 +89,12 @@ function handleFileSelect(evt) {
   var parts = file.name.split('.')
   if (parts[0] !== 'r' && parts[3] !== 'mca') return
   var reader = new FileReader()
+  var levelName = userName + '/' + worldName
   reader.onloadend = function() {
-    voxelUtils.saveRegion(reader.result, worldName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
+    voxelUtils.saveRegion(reader.result, levelName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
       if (errs) console.log(errs)
       try { Avgrund.hide() } catch(e){ }
-      voxelUtils.initGame({ worldName: worldName })
+      if (typeof game === 'undefined') voxelUtils.initGame({ worldName: levelName })
     })
   }
   reader.readAsArrayBuffer(file)

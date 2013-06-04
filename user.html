@@ -31,19 +31,25 @@
   <body>
 
   <div id="pattern" class="pattern">
-      <div class="c">
+      <div class="c" id="default-popup">
         <div class="left">
+          <div class="gravatar"></div>
+          
           <a class="btn btn-danger btn-large btn-block new-world">
-            Create
+            Create World
           </a>
           <a class="btn btn-large btn-block logout" target="_blank">
             Log out
           </a>
         </div>
-        <div class="right">
-          hi
+        <div class="right demo-browser-content">
+          Loading...
         </div>
       </div>
+    </div>
+    
+    <div class="open-menu">
+      <a class="greeting"></a>
     </div>
     
     <aside class="new-world-form">
@@ -64,6 +70,6 @@
     <script type="text/javascript" src="js/vendor/jquery-1.9.1.js"></script>
     <script type="text/javascript" src="js/vendor/bootstrap.js"></script>
     <script type="text/javascript" src="js/vendor/avgrund.js"></script>
-    <script type="text/javascript" src="index-bundle.js"></script>
+    <script type="text/javascript" src="user-bundle.js"></script>
   </body>
 </html>

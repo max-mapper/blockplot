@@ -18,7 +18,7 @@ module.exports = function() {
       submit.hide()
       hoodie.store.add('world', {name: worldName})
         .done(function(user) {
-          window.location.href = "/world.html#" + worldName
+          window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
         })
         .fail(function(e) {
           submit.show()
@@ -58,7 +58,7 @@ module.exports = function() {
   }
 
   function isLoggedIn(user) {
-    window.location.href = "/user.html#" + user
+    loadProfile(user)
   }
   
   function loadProfile(user) {
@@ -74,10 +74,10 @@ module.exports = function() {
       getWorlds(function(err, worlds) {
         if (err) return
         var content = $('.demo-browser-content')
-        content.html('<h3>Your Worlds</h3>')
+        content.html("<h3>" + user + "'s Worlds</h3>")
         if (worlds.length === 0) content.html("You haven't created any worlds yet!")
         worlds.map(function(world) {
-          content.append('<p><a href="' + "/world.html#" + world.name + '">' + world.name + '</a></p>')
+          content.append('<p><a href="' + "/world.html#" + user + '/' + world.name + '">' + world.name + '</a></p>')
         })
       })
     }, 100)

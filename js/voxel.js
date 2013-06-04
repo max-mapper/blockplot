@@ -5,7 +5,7 @@ var workerstream = require('workerstream')
 var blockInfo = require('minecraft-blockinfo')
 var walk = require('voxel-walk')
 
-var loadDelay = 10000 // milliseconds
+var loadDelay = 1000 // milliseconds
 
 module.exports = {
   initGame: initGame,
@@ -69,13 +69,14 @@ function initGame(options) {
       arrayType: Uint8Array,
       worldOrigin: pos,
       materials: materials
+      // materials: ['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d', '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476', '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc', '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'],
+      // materialFlatColor: true
     })
 
     window.game = game // for console debugging
     var makeFly = fly(game)
     var target = game.controls.target()
     game.flyer = makeFly(target)
-    
     
     game.on('tick', function() {
       walk.render(target.playerSkin)
