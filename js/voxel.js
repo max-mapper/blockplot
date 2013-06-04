@@ -52,7 +52,7 @@ function initGame(options) {
     var level = voxelLevel('blocks', function(err) {
       if (err) return cb(err.message)
       level.db.get('gameState', { asBuffer: false }, function(err, state) {
-        cb(err, level, state)
+        cb(false, level, state)
       })
     })
   }
