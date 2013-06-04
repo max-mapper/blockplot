@@ -1,13 +1,13 @@
 {
   "name": "blockplot",
-  "version": "0.0.1-6",
+  "version": "0.0.1-7",
   "type": "app",
   "dependencies": {
     "hoodie-app": "git://github.com/hoodiehq/hoodie-app.git",
     "hoodie-worker-users": "git://github.com/hoodiehq/worker-users.git"
   },
   "scripts": {
-    "start": "./node_modules/hoodie-app/bin/start --no-local-tld"
+    "start": "node node_modules/hoodie-app/bin/start"
   },
   "subdomain": "blockplot",
   "engines": {
