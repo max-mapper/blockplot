@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js user.js:user-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast  --noparse=three",
-    "build": "browserify main.js -o index-bundle.js && user.js -o user-bundle.js && browserify world.js -o world-bundle.js  && browserify convert-worker.js -o convert-worker-bundle.js && browserify world-worker.js -o world-worker-bundle.js"
+    "build": "browserify main.js -o index-bundle.js && browserify user.js -o user-bundle.js && browserify world.js -o world-bundle.js  && browserify convert-worker.js -o convert-worker-bundle.js && browserify world-worker.js -o world-worker-bundle.js"
   },
   "engines": {
     "node": "0.8.x"

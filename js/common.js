@@ -31,8 +31,8 @@ module.exports = function() {
     })
     
 
-  // var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
-  var hoodie  = new Hoodie("http://127.0.0.1:8080/_api/")
+  var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
+  // var hoodie  = new Hoodie("http://127.0.0.1:8080/_api/")
 
   var formContainer = $('#default-popup')
   var frontPageForm = $('.front-page-form')
