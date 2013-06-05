@@ -19,7 +19,13 @@ module.exports = function() {
       hoodie.store.add('world', {name: worldName})
         .done(function(user) {
           window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
-          window.location.reload()
+          
+          // apparently setting href and triggering reload isn't synchronous!???
+          // so I wait for 1 second before forcing it
+          setTimeout(function() {
+            window.location.reload()
+          }, 1000)
+          
         })
         .fail(function(e) {
           submit.show()
