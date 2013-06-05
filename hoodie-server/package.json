@@ -7,7 +7,7 @@
     "hoodie-worker-users": "git://github.com/hoodiehq/worker-users.git"
   },
   "scripts": {
-    "start": "node node_modules/hoodie-app/bin/start"
+    "start": "node node_modules/hoodie-app/bin/start --no-local-tld"
   },
   "subdomain": "blockplot",
   "engines": {
