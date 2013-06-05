@@ -148,7 +148,13 @@ module.exports = function() {
       hoodie.store.add('world', {name: worldName})
         .done(function(user) {
           window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
-          window.location.reload()
+          
+          // apparently setting href and triggering reload isn't synchronous!???
+          // so I wait for 1 second before forcing it
+          setTimeout(function() {
+            window.location.reload()
+          }, 1000)
+          
         })
         .fail(function(e) {
           submit.show()
@@ -17676,6 +17682,95 @@ function traceRay(voxels, origin, direction, max_d, hit_pos, hit_norm, EPSILON) 
 
 module.exports = traceRay
 },{}],61:[function(require,module,exports){
+(function(process){var THREE, temporaryPosition, temporaryVector
+
+module.exports = function(three, opts) {
+  temporaryPosition = new three.Vector3
+  temporaryVector = new three.Vector3
+  
+  return new View(three, opts)
+}
+
+function View(three, opts) {
+  THREE = three // three.js doesn't support multiple instances on a single page
+  this.fov = opts.fov || 60
+  this.width = opts.width || 512
+  this.height = opts.height || 512
+  this.aspectRatio = opts.aspectRatio || this.width/this.height
+  this.nearPlane = opts.nearPlane || 1
+  this.farPlane = opts.farPlane || 10000
+  this.skyColor = opts.skyColor || 0xBFD1E5
+  this.ortho = opts.ortho
+  this.camera = this.ortho?(new THREE.OrthographicCamera(this.width/-2, this.width/2, this.height/2, this.height/-2, this.nearPlane, this.farPlane)):(new THREE.PerspectiveCamera(this.fov, this.aspectRatio, this.nearPlane, this.farPlane))
+  this.camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+  if (!process.browser) return
+
+  this.createRenderer()
+  this.element = this.renderer.domElement
+}
+
+View.prototype.createRenderer = function() {
+  this.renderer = new THREE.WebGLRenderer({
+    antialias: true
+  })
+  this.renderer.setSize(this.width, this.height)
+  this.renderer.setClearColorHex(this.skyColor, 1.0)
+  this.renderer.clear()
+}
+
+View.prototype.bindToScene = function(scene) {
+  scene.add(this.camera)
+}
+
+View.prototype.getCamera = function() {
+  return this.camera
+}
+
+View.prototype.cameraPosition = function() {
+  temporaryPosition.multiplyScalar(0)
+  temporaryPosition.applyMatrix4(this.camera.matrixWorld)
+  return [temporaryPosition.x, temporaryPosition.y, temporaryPosition.z]
+}
+
+View.prototype.cameraVector = function() {
+  temporaryVector.multiplyScalar(0)
+  temporaryVector.z = -1
+  temporaryVector.transformDirection( this.camera.matrixWorld )
+  return [temporaryVector.x, temporaryVector.y, temporaryVector.z]
+}
+
+View.prototype.resizeWindow = function(width, height) {
+  if (this.element.parentElement) {
+    width = width || this.element.parentElement.clientWidth
+    height = height || this.element.parentElement.clientHeight
+  }
+
+  this.camera.aspect = this.aspectRatio = width/height
+  this.width = width
+  this.height = height
+
+  this.camera.updateProjectionMatrix()
+
+  this.renderer.setSize( width, height )
+}
+
+View.prototype.render = function(scene) {
+  this.renderer.render(scene, this.camera)
+}
+
+View.prototype.appendTo = function(element) {
+  if (typeof element === 'object') {
+    element.appendChild(this.element)
+  }
+  else {
+    document.querySelector(element).appendChild(this.element)
+  }
+
+  this.resizeWindow(this.width,this.height)
+}
+})(require("__browserify_process"))
+},{"__browserify_process":17}],62:[function(require,module,exports){
 module.exports = control
 
 var Stream = require('stream').Stream
@@ -17966,96 +18061,7 @@ function clamp(value, to) {
   return isFinite(to) ? max(min(value, to), -to) : value
 }
 
-},{"stream":14}],62:[function(require,module,exports){
-(function(process){var THREE, temporaryPosition, temporaryVector
-
-module.exports = function(three, opts) {
-  temporaryPosition = new three.Vector3
-  temporaryVector = new three.Vector3
-  
-  return new View(three, opts)
-}
-
-function View(three, opts) {
-  THREE = three // three.js doesn't support multiple instances on a single page
-  this.fov = opts.fov || 60
-  this.width = opts.width || 512
-  this.height = opts.height || 512
-  this.aspectRatio = opts.aspectRatio || this.width/this.height
-  this.nearPlane = opts.nearPlane || 1
-  this.farPlane = opts.farPlane || 10000
-  this.skyColor = opts.skyColor || 0xBFD1E5
-  this.ortho = opts.ortho
-  this.camera = this.ortho?(new THREE.OrthographicCamera(this.width/-2, this.width/2, this.height/2, this.height/-2, this.nearPlane, this.farPlane)):(new THREE.PerspectiveCamera(this.fov, this.aspectRatio, this.nearPlane, this.farPlane))
-  this.camera.lookAt(new THREE.Vector3(0, 0, 0))
-
-  if (!process.browser) return
-
-  this.createRenderer()
-  this.element = this.renderer.domElement
-}
-
-View.prototype.createRenderer = function() {
-  this.renderer = new THREE.WebGLRenderer({
-    antialias: true
-  })
-  this.renderer.setSize(this.width, this.height)
-  this.renderer.setClearColorHex(this.skyColor, 1.0)
-  this.renderer.clear()
-}
-
-View.prototype.bindToScene = function(scene) {
-  scene.add(this.camera)
-}
-
-View.prototype.getCamera = function() {
-  return this.camera
-}
-
-View.prototype.cameraPosition = function() {
-  temporaryPosition.multiplyScalar(0)
-  temporaryPosition.applyMatrix4(this.camera.matrixWorld)
-  return [temporaryPosition.x, temporaryPosition.y, temporaryPosition.z]
-}
-
-View.prototype.cameraVector = function() {
-  temporaryVector.multiplyScalar(0)
-  temporaryVector.z = -1
-  temporaryVector.transformDirection( this.camera.matrixWorld )
-  return [temporaryVector.x, temporaryVector.y, temporaryVector.z]
-}
-
-View.prototype.resizeWindow = function(width, height) {
-  if (this.element.parentElement) {
-    width = width || this.element.parentElement.clientWidth
-    height = height || this.element.parentElement.clientHeight
-  }
-
-  this.camera.aspect = this.aspectRatio = width/height
-  this.width = width
-  this.height = height
-
-  this.camera.updateProjectionMatrix()
-
-  this.renderer.setSize( width, height )
-}
-
-View.prototype.render = function(scene) {
-  this.renderer.render(scene, this.camera)
-}
-
-View.prototype.appendTo = function(element) {
-  if (typeof element === 'object') {
-    element.appendChild(this.element)
-  }
-  else {
-    document.querySelector(element).appendChild(this.element)
-  }
-
-  this.resizeWindow(this.width,this.height)
-}
-})(require("__browserify_process"))
-},{"__browserify_process":17}],63:[function(require,module,exports){
+},{"stream":14}],63:[function(require,module,exports){
 module.exports = inherits
 
 function inherits (c, p, proto) {
@@ -21958,7 +21964,7 @@ Game.prototype.destroy = function() {
 }
 
 })(require("__browserify_process"))
-},{"path":30,"events":16,"./lib/stats":55,"./lib/detector":56,"interact":66,"raf":58,"collide-3d-tilemap":59,"spatial-events":67,"voxel":68,"voxel-mesh":69,"voxel-chunks":70,"voxel-raycast":60,"voxel-control":61,"voxel-view":62,"inherits":63,"aabb-3d":71,"gl-matrix":64,"kb-controls":72,"voxel-physical":73,"pin-it":65,"voxel-texture":74,"voxel-region-change":75,"tic":76,"three":77,"__browserify_process":17}],76:[function(require,module,exports){
+},{"path":30,"events":16,"./lib/stats":55,"./lib/detector":56,"interact":66,"raf":58,"collide-3d-tilemap":59,"spatial-events":67,"voxel":68,"voxel-chunks":69,"voxel-mesh":70,"voxel-raycast":60,"voxel-view":61,"voxel-control":62,"inherits":63,"aabb-3d":71,"gl-matrix":64,"kb-controls":72,"voxel-physical":73,"pin-it":65,"voxel-texture":74,"voxel-region-change":75,"tic":76,"three":77,"__browserify_process":17}],76:[function(require,module,exports){
 /*
  * tic
  * https://github.com/shama/tic
@@ -63026,7 +63032,98 @@ for(i = 112; i < 136; ++i) {
 }
 
 })()
-},{}],91:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
+var voxel = require('voxel');
+var ChunkMatrix = require('./lib/chunk_matrix');
+var indexer = require('./lib/indexer');
+
+module.exports = Group;
+
+function Group (game) {
+    if (!(this instanceof Group)) return new Group(game);
+    this.meshes = [];
+    this.chunkMatricies = [];
+    this.game = game;
+    this.indexer = indexer(game);
+}
+
+Group.prototype.create = function (generate) {
+    var self = this;
+    var cm = new ChunkMatrix(self.game, generate);
+    cm.on('add', function (mesh) {
+        self.chunkMatricies[mesh.id] = cm;
+        self.meshes.push(mesh);
+    });
+    cm.on('remove', function (id) {
+        delete self.chunkMatricies[id];
+    });
+    self.chunkMatricies.push(cm);
+    return cm;
+};
+ 
+Group.prototype.createBlock = function (pos, val) {
+    var self = this;
+    var T = self.game.THREE;
+    var size = self.game.cubeSize;
+    
+    var cm = pos.chunkMatrix;
+    var d = pos.direction;
+    
+    var mr = new T.Matrix4().getInverse(cm.rotationObject.matrix);
+    var mt = new T.Matrix4().getInverse(cm.translationObject.matrix);
+    var m = new T.Matrix4().multiply(mr, mt);
+    
+    
+    return (function draw (offset) {
+        var pt = new T.Vector3();
+        pt.copy(pos);
+        
+        pt.x -= d.x * offset;
+        pt.y -= d.y * offset;
+        pt.z -= d.z * offset;
+        offset += size / 8;
+        
+        var tr = m.multiplyVector3(pt);
+        var ci = self.indexer.chunk(tr);
+        var vi = self.indexer.voxel(tr);
+        
+        var value = cm.getByIndex(ci, vi);
+        if (!value) {
+            cm.setByIndex(ci, vi, 3);
+            return true;
+        }
+        else draw(offset + 0.1)
+    })(0)
+};
+
+Group.prototype.setBlock = function (pos, val) {
+    var ix = this.getIndex(pos);
+    var cm = pos.chunkMatrix;
+    return cm.setByIndex(ix.chunk, ix.voxel, val);
+};
+
+Group.prototype.getBlock = function (pos) {
+    var ix = this.getIndex(pos);
+    var cm = pos.chunkMatrix;
+    return cm.getByIndex(ix.chunk, ix.voxel);
+};
+
+Group.prototype.getIndex = function (pos) {
+    var T = this.game.THREE;
+    var cm = pos.chunkMatrix;
+    
+    var mr = new T.Matrix4().getInverse(cm.rotationObject.matrix);
+    var mt = new T.Matrix4().getInverse(cm.translationObject.matrix);
+    var m = new T.Matrix4().multiply(mt, mr);
+    
+    var tr = m.multiplyVector3(pos);
+    var ci = this.indexer.chunk(tr);
+    var vi = this.indexer.voxel(tr);
+    
+    return { chunk: ci, voxel: vi };
+};
+
+},{"./lib/chunk_matrix":95,"./lib/indexer":86,"voxel":68}],91:[function(require,module,exports){
 (function(process){
 var window = window || {};
 var self = self || {};
@@ -99183,98 +99280,7 @@ if (typeof exports !== 'undefined') {
 }
 
 })(require("__browserify_process"))
-},{"__browserify_process":17}],70:[function(require,module,exports){
-var voxel = require('voxel');
-var ChunkMatrix = require('./lib/chunk_matrix');
-var indexer = require('./lib/indexer');
-
-module.exports = Group;
-
-function Group (game) {
-    if (!(this instanceof Group)) return new Group(game);
-    this.meshes = [];
-    this.chunkMatricies = [];
-    this.game = game;
-    this.indexer = indexer(game);
-}
-
-Group.prototype.create = function (generate) {
-    var self = this;
-    var cm = new ChunkMatrix(self.game, generate);
-    cm.on('add', function (mesh) {
-        self.chunkMatricies[mesh.id] = cm;
-        self.meshes.push(mesh);
-    });
-    cm.on('remove', function (id) {
-        delete self.chunkMatricies[id];
-    });
-    self.chunkMatricies.push(cm);
-    return cm;
-};
- 
-Group.prototype.createBlock = function (pos, val) {
-    var self = this;
-    var T = self.game.THREE;
-    var size = self.game.cubeSize;
-    
-    var cm = pos.chunkMatrix;
-    var d = pos.direction;
-    
-    var mr = new T.Matrix4().getInverse(cm.rotationObject.matrix);
-    var mt = new T.Matrix4().getInverse(cm.translationObject.matrix);
-    var m = new T.Matrix4().multiply(mr, mt);
-    
-    
-    return (function draw (offset) {
-        var pt = new T.Vector3();
-        pt.copy(pos);
-        
-        pt.x -= d.x * offset;
-        pt.y -= d.y * offset;
-        pt.z -= d.z * offset;
-        offset += size / 8;
-        
-        var tr = m.multiplyVector3(pt);
-        var ci = self.indexer.chunk(tr);
-        var vi = self.indexer.voxel(tr);
-        
-        var value = cm.getByIndex(ci, vi);
-        if (!value) {
-            cm.setByIndex(ci, vi, 3);
-            return true;
-        }
-        else draw(offset + 0.1)
-    })(0)
-};
-
-Group.prototype.setBlock = function (pos, val) {
-    var ix = this.getIndex(pos);
-    var cm = pos.chunkMatrix;
-    return cm.setByIndex(ix.chunk, ix.voxel, val);
-};
-
-Group.prototype.getBlock = function (pos) {
-    var ix = this.getIndex(pos);
-    var cm = pos.chunkMatrix;
-    return cm.getByIndex(ix.chunk, ix.voxel);
-};
-
-Group.prototype.getIndex = function (pos) {
-    var T = this.game.THREE;
-    var cm = pos.chunkMatrix;
-    
-    var mr = new T.Matrix4().getInverse(cm.rotationObject.matrix);
-    var mt = new T.Matrix4().getInverse(cm.translationObject.matrix);
-    var m = new T.Matrix4().multiply(mt, mr);
-    
-    var tr = m.multiplyVector3(pos);
-    var ci = this.indexer.chunk(tr);
-    var vi = this.indexer.voxel(tr);
-    
-    return { chunk: ci, voxel: vi };
-};
-
-},{"./lib/chunk_matrix":95,"./lib/indexer":86,"voxel":68}],67:[function(require,module,exports){
+},{"__browserify_process":17}],67:[function(require,module,exports){
 module.exports = SpatialEventEmitter
 
 var slice = [].slice
@@ -99406,7 +99412,54 @@ function finite(bbox) {
          isFinite(bbox.z1())
 }
 
-},{"./tree":96,"aabb-3d":71}],94:[function(require,module,exports){
+},{"./tree":96,"aabb-3d":71}],93:[function(require,module,exports){
+/*
+ * tic
+ * https://github.com/shama/tic
+ *
+ * Copyright (c) 2013 Kyle Robinson Young
+ * Licensed under the MIT license.
+ */
+
+function Tic() { this._things = []; }
+module.exports = function() { return new Tic(); };
+
+Tic.prototype._stack = function(thing) {
+  var self = this;
+  self._things.push(thing);
+  var i = self._things.length - 1;
+  return function() { delete self._things[i]; }
+};
+
+Tic.prototype.interval = Tic.prototype.setInterval = function(fn, at) {
+  return this._stack({
+    fn: fn, at: at, args: Array.prototype.slice.call(arguments, 2),
+    elapsed: 0, once: false
+  });
+};
+
+Tic.prototype.timeout = Tic.prototype.setTimeout = function(fn, at) {
+  return this._stack({
+    fn: fn, at: at, args: Array.prototype.slice.call(arguments, 2),
+    elapsed: 0, once: true
+  });
+};
+
+Tic.prototype.tick = function(dt) {
+  var self = this;
+  self._things.forEach(function(thing, i) {
+    thing.elapsed += dt;
+    if (thing.elapsed > thing.at) {
+      thing.elapsed -= thing.at;
+      thing.fn.apply(thing.fn, thing.args || []);
+      if (thing.once) {
+        delete self._things[i];
+      }
+    }
+  });
+};
+
+},{}],94:[function(require,module,exports){
 /*
  * atlaspack
  * https://github.com/shama/atlaspack
@@ -99663,53 +99716,6 @@ Atlas.prototype._debug = function() {
   });
 };
 
-},{}],93:[function(require,module,exports){
-/*
- * tic
- * https://github.com/shama/tic
- *
- * Copyright (c) 2013 Kyle Robinson Young
- * Licensed under the MIT license.
- */
-
-function Tic() { this._things = []; }
-module.exports = function() { return new Tic(); };
-
-Tic.prototype._stack = function(thing) {
-  var self = this;
-  self._things.push(thing);
-  var i = self._things.length - 1;
-  return function() { delete self._things[i]; }
-};
-
-Tic.prototype.interval = Tic.prototype.setInterval = function(fn, at) {
-  return this._stack({
-    fn: fn, at: at, args: Array.prototype.slice.call(arguments, 2),
-    elapsed: 0, once: false
-  });
-};
-
-Tic.prototype.timeout = Tic.prototype.setTimeout = function(fn, at) {
-  return this._stack({
-    fn: fn, at: at, args: Array.prototype.slice.call(arguments, 2),
-    elapsed: 0, once: true
-  });
-};
-
-Tic.prototype.tick = function(dt) {
-  var self = this;
-  self._things.forEach(function(thing, i) {
-    thing.elapsed += dt;
-    if (thing.elapsed > thing.at) {
-      thing.elapsed -= thing.at;
-      thing.fn.apply(thing.fn, thing.args || []);
-      if (thing.once) {
-        delete self._things[i];
-      }
-    }
-  });
-};
-
 },{}],88:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
@@ -99959,7 +99965,7 @@ Chunker.prototype.voxelVector = function(pos) {
   return [vx, vy, vz]
 };
 
-},{"events":16,"inherits":99}],69:[function(require,module,exports){
+},{"events":16,"inherits":99}],70:[function(require,module,exports){
 var THREE = require('three')
 
 module.exports = function(data, mesher, scaleFactor, three) {
@@ -103934,7 +103940,7 @@ ChunkMatrix.prototype._update = function (ci) {
     this.emit('update', chunk, ckey);
 };
 
-},{"events":16,"./indexer":86,"voxel-mesh":69,"voxel":68,"inherits":63}],100:[function(require,module,exports){
+},{"events":16,"./indexer":86,"voxel-mesh":70,"voxel":68,"inherits":63}],100:[function(require,module,exports){
 module.exports = require('./lib/index')
 
 },{"./lib/index":104}],103:[function(require,module,exports){
