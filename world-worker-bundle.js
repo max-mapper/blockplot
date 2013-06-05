@@ -29,46 +29,7 @@ self.onmessage = function(event) {
   var data = event.data
   loadChunk(data.worldName, data.position, data.gameChunkSize)
 }
-},{"voxel-level":2,"voxel-bundle":3,"minecraft-blockinfo":4}],3:[function(require,module,exports){
-module.exports = Bundle
-
-function Bundle(bundle) {
-  if (!(this instanceof Bundle)) return new Bundle(bundle)
-  this.voxels = bundle.voxels
-  this.dimensions = bundle.dimensions || bundle.dims
-  this.position = bundle.position
-}
-
-Bundle.prototype.bounds = function() {
-  var s = this.position
-  var d = this.dimensions
-  var e = [s[0] + d[0], s[1] + d[1], s[2] + d[2]]
-  return [
-    [Math.min(s[0], e[0]), Math.min(s[1], e[1]), Math.min(s[2], e[2])],
-    [Math.max(s[0], e[0]), Math.max(s[1], e[1]), Math.max(s[2], e[2])]
-  ]
-}
-
-Bundle.prototype.dimensions = function() {
-  var bounds = this.bounds()
-  var w = bounds[1][0] - bounds[0][0]
-  var h = bounds[1][1] - bounds[0][1]
-  var d = bounds[1][2] - bounds[0][2]
-  return [w, h, d]
-}
-
-Bundle.prototype.extract = function(func) {
-  var bounds = this.bounds()
-  var p = this.position
-  var l = bounds[0], h = bounds[1]
-  var idx = 0
-  for(var z = l[2]; z < h[2]; ++z)
-    for(var y = l[1]; y < h[1]; ++y)
-      for(var x = l[0]; x < h[0]; ++x, ++idx)
-        func(x, y, z, this.voxels[idx], idx)
-  func(false, false, false)
-}
-},{}],4:[function(require,module,exports){
+},{"voxel-level":2,"minecraft-blockinfo":3,"voxel-bundle":4}],3:[function(require,module,exports){
 // mostly from http://www.minecraftwiki.net/wiki/Data_values#Data
 
 // TODO (fork and contribute!): water, lava, fire, saplings, wood rotation, decay of leaves, slab orientation, piston, piston extension, redstone wire, crops, sign posts, farmland, door, rails, levers, pressure plates, buttons, snowfall, cacti, sugar cane, jukebox, pumpkins, cake, redstone repeaters, trapdoors, monster egg, stone brick, mushrooms, stems, vines, fence gates, nether wart, brewing stand, cauldron, end portal block, cocoas, tripwire hook, tripwire, flower pots, heads, dyes, anvil, potions, status effects, spawn eggs, golden apple
@@ -1181,6 +1142,45 @@ module.exports.blocks = {
     "type": "firework_star",
     "id": 402
   }
+}
+},{}],4:[function(require,module,exports){
+module.exports = Bundle
+
+function Bundle(bundle) {
+  if (!(this instanceof Bundle)) return new Bundle(bundle)
+  this.voxels = bundle.voxels
+  this.dimensions = bundle.dimensions || bundle.dims
+  this.position = bundle.position
+}
+
+Bundle.prototype.bounds = function() {
+  var s = this.position
+  var d = this.dimensions
+  var e = [s[0] + d[0], s[1] + d[1], s[2] + d[2]]
+  return [
+    [Math.min(s[0], e[0]), Math.min(s[1], e[1]), Math.min(s[2], e[2])],
+    [Math.max(s[0], e[0]), Math.max(s[1], e[1]), Math.max(s[2], e[2])]
+  ]
+}
+
+Bundle.prototype.dimensions = function() {
+  var bounds = this.bounds()
+  var w = bounds[1][0] - bounds[0][0]
+  var h = bounds[1][1] - bounds[0][1]
+  var d = bounds[1][2] - bounds[0][2]
+  return [w, h, d]
+}
+
+Bundle.prototype.extract = function(func) {
+  var bounds = this.bounds()
+  var p = this.position
+  var l = bounds[0], h = bounds[1]
+  var idx = 0
+  for(var z = l[2]; z < h[2]; ++z)
+    for(var y = l[1]; y < h[1]; ++y)
+      for(var x = l[0]; x < h[0]; ++x, ++idx)
+        func(x, y, z, this.voxels[idx], idx)
+  func(false, false, false)
 }
 },{}],2:[function(require,module,exports){
 var leveljs = require('level-js')
