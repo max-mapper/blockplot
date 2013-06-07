@@ -5,4 +5,4 @@ body { background: none; }
 .hidden { display: none; }
 #import-popup p { margin: 10px 0; }
 .file-select { width: 300px; }
-.title { position: absolute; color: white; padding: 5px; font-size: 40px; top: 0; }
+.title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; }

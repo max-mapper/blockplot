@@ -22,10 +22,12 @@ function getState(game) {
   return state
 }
 
-function storeState(db, game, cb) {
+function storeState(db, game, worldName, seed, cb) {
   if (!cb) cb = function noop(){}
   return setInterval(function() {
-    db.put('gameState', getState(game), cb)
+    var state = getState(game)
+    if (seed) state.seed = seed
+    db.put(worldName + '|state', state, cb)
   }, 5000)
 }
 
@@ -51,7 +53,9 @@ function initGame(options) {
   function initDB(cb) {
     var level = voxelLevel('blocks', function(err) {
       if (err) return cb(err.message)
-      level.db.get('gameState', { asBuffer: false }, function(err, state) {
+      level.db.get(options.worldName + '|state', { asBuffer: false }, function(err, state) {
+        if (!state) state = {}
+        if (options.seed) state.seed = options.seed
         cb(false, level, state)
       })
     })
@@ -89,6 +93,7 @@ function initGame(options) {
     var worldWorker = workerstream('world-worker-bundle.js')
     worldWorker.on('data', function(data) {
       if (data.ready && game.paused) return startGame(game, level, state, worldWorker)
+      if (data.log) return console.log(data)
       var chunk = {
         position: data.position,
         voxels: new Uint8Array(data.buffer),
@@ -103,11 +108,13 @@ function initGame(options) {
   }
   
   function startGame(game, level, state, worldWorker) {
+    
     game.voxels.on('missingChunk', function(p) {
       worldWorker.write({
         worldName: options.worldName,
         position: p,
-        gameChunkSize: gameChunkSize
+        gameChunkSize: gameChunkSize,
+        seed: state.seed
       })
     })
     
@@ -122,18 +129,17 @@ function initGame(options) {
       })
     })
     
-    if (!state) state = {
-      player: {
-        position: {x: 0, y: 0, z: 0},
-        rotation: {x: 0, y: 0, z: 0}
-      }
+    if (!state.player) state.player = {
+      position: {x: 0, y: 0, z: 0},
+      rotation: {x: 0, y: 0, z: 0}
     }
+
     game.paused = false
     game.flyer.startFlying()
     var avatar = game.controls.target().avatar
     avatar.position.copy(state.player.position)
     avatar.rotation.copy(state.player.rotation)
-    storeState(level.db, game)
+    storeState(level.db, game, options.worldName, state.seed)
   }
   
 }
