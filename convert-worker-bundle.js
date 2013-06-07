@@ -518,39 +518,7 @@ exports.format = function(f) {
   return str;
 };
 
-},{"events":5}],2:[function(require,module,exports){
-var leveljs = require('level-js')
-var crunch = require('voxel-crunch')
-
-module.exports = VoxelLevel
-
-function VoxelLevel(game, readyCB) {
-  if (!(this instanceof VoxelLevel)) return new VoxelLevel(game, readyCB)
-  this.game = game
-  this.db = leveljs('blocks')
-  this.db.open(readyCB)
-}
-
-VoxelLevel.prototype.load = function(prefix, chunkPosition, dimensions, cb) {
-  var chunkLength = dimensions[0] * dimensions[1] * dimensions[2]
-  var chunkIndex = prefix + '|' + chunkPosition.join('|') + '|' + chunkLength
-  this.db.get(chunkIndex, function(err, rle) {
-    if (err) return cb(err)
-    var voxels = new Uint8Array(chunkLength)
-    crunch.decode(rle, voxels)
-    cb(false, {position: chunkPosition, voxels: voxels, dimensions: dimensions})
-  })
-}
-
-VoxelLevel.prototype.store = function(prefix, chunk, cb) {
-  var rle = crunch.encode(chunk.voxels)
-  var key = prefix + '|'
-  key += chunk.position.join('|')
-  key += '|' + chunk.voxels.length
-  this.db.put(key, rle, cb)
-}
-
-},{"level-js":7,"voxel-crunch":8}],9:[function(require,module,exports){
+},{"events":5}],7:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -790,7 +758,39 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":9}],3:[function(require,module,exports){
+},{"__browserify_process":7}],2:[function(require,module,exports){
+var leveljs = require('level-js')
+var crunch = require('voxel-crunch')
+
+module.exports = VoxelLevel
+
+function VoxelLevel(game, readyCB) {
+  if (!(this instanceof VoxelLevel)) return new VoxelLevel(game, readyCB)
+  this.game = game
+  this.db = leveljs('blocks')
+  this.db.open(readyCB)
+}
+
+VoxelLevel.prototype.load = function(prefix, chunkPosition, dimensions, cb) {
+  var chunkLength = dimensions[0] * dimensions[1] * dimensions[2]
+  var chunkIndex = prefix + '|' + chunkPosition.join('|') + '|' + chunkLength
+  this.db.get(chunkIndex, function(err, rle) {
+    if (err) return cb(err)
+    var voxels = new Uint8Array(chunkLength)
+    crunch.decode(rle, voxels)
+    cb(false, {position: chunkPosition, voxels: voxels, dimensions: dimensions})
+  })
+}
+
+VoxelLevel.prototype.store = function(prefix, chunk, cb) {
+  var rle = crunch.encode(chunk.voxels)
+  var key = prefix + '|'
+  key += chunk.position.join('|')
+  key += '|' + chunk.voxels.length
+  this.db.put(key, rle, cb)
+}
+
+},{"level-js":8,"voxel-crunch":9}],3:[function(require,module,exports){
 var mcRegion = require('minecraft-region')
 var mca = require('minecraft-mca')
 var stream = require('stream')
@@ -875,7 +875,7 @@ MCA2JSON.prototype.convert = function(buf, regionX, regionZ) {
   self.emit('end')
 }
 
-},{"stream":4,"util":6,"minecraft-mca":10,"minecraft-region":11}],8:[function(require,module,exports){
+},{"stream":4,"util":6,"minecraft-mca":10,"minecraft-region":11}],9:[function(require,module,exports){
 var bits = require("bit-twiddle")
 
 function size(chunk) {
@@ -970,324 +970,7 @@ function decode(runs, chunk) {
 }
 exports.decode = decode
 
-},{"bit-twiddle":12}],7:[function(require,module,exports){
-module.exports = Level
-
-var IDB = require('idb-wrapper')
-var AbstractLevelDOWN = require('abstract-leveldown').AbstractLevelDOWN
-var util = require('util')
-var Iterator = require('./iterator')
-var isBuffer = require('isbuffer')
-
-function Level(location) {
-  if (!(this instanceof Level)) return new Level(location)
-  if (!location) throw new Error("constructor requires at least a location argument")
-  
-  this.location = location
-}
-
-util.inherits(Level, AbstractLevelDOWN)
-
-Level.prototype._open = function(options, callback) {
-  var self = this
-  
-  this.idb = new IDB({
-    storeName: this.location,
-    autoIncrement: false,
-    keyPath: null,
-    onStoreReady: function () {
-      callback && callback(null, self.idb)
-    }, 
-    onError: function(err) {
-      callback && callback(err)
-    }
-  })
-}
-
-Level.prototype._get = function (key, options, callback) {
-  this.idb.get(key, function (value) {
-    if (value === undefined) {
-      // 'NotFound' error, consistent with LevelDOWN API
-      return callback(new Error('NotFound'))
-    }
-    if (options.asBuffer !== false && !isBuffer(value))
-      value = StringToArrayBuffer(String(value))
-    return callback(null, value, key)
-  }, callback)
-}
-
-Level.prototype._del = function(id, options, callback) {
-  this.idb.remove(id, callback, callback)
-}
-
-Level.prototype._put = function (key, value, options, callback) {
-  this.idb.put(key, value, function() { callback() }, callback)
-}
-
-Level.prototype.iterator = function (options) {
-  if (typeof options !== 'object') options = {}
-  return new Iterator(this.idb, options)
-}
-
-Level.prototype._batch = function (array, options, callback) {
-  return this.idb.batch(array, function(){ callback() }, callback)
-}
-
-Level.prototype._close = function (callback) {
-  this.idb.db.close()
-  callback()
-}
-
-Level.prototype._approximateSize = function() {
-  throw new Error('Not implemented')
-}
-
-Level.prototype._isBuffer = isBuffer
-
-var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (isBuffer(obj) && obj.byteLength === 0)
-    return new Error(type + ' cannot be an empty ArrayBuffer')
-  if (String(obj) === '')
-    return new Error(type + ' cannot be an empty String')
-  if (obj.length === 0)
-    return new Error(type + ' cannot be an empty Array')
-}
-
-function ArrayBufferToString(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf))
-}
-
-function StringToArrayBuffer(str) {
-  var buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
-  var bufView = new Uint16Array(buf)
-  for (var i = 0, strLen = str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i)
-  }
-  return buf
-}
-
-},{"util":6,"./iterator":13,"abstract-leveldown":14,"isbuffer":15,"idb-wrapper":16}],12:[function(require,module,exports){
-/**
- * Bit twiddling hacks for JavaScript.
- *
- * Author: Mikola Lysenko
- *
- * Ported from Stanford bit twiddling hack library:
- *    http://graphics.stanford.edu/~seander/bithacks.html
- */
-
-"use strict"; "use restrict";
-
-//Number of bits in an integer
-var INT_BITS = 32;
-
-//Constants
-exports.INT_BITS  = INT_BITS;
-exports.INT_MAX   =  0x7fffffff;
-exports.INT_MIN   = -1<<(INT_BITS-1);
-
-//Returns -1, 0, +1 depending on sign of x
-exports.sign = function(v) {
-  return (v > 0) - (v < 0);
-}
-
-//Computes absolute value of integer
-exports.abs = function(v) {
-  var mask = v >> (INT_BITS-1);
-  return (v ^ mask) - mask;
-}
-
-//Computes minimum of integers x and y
-exports.min = function(x, y) {
-  return y ^ ((x ^ y) & -(x < y));
-}
-
-//Computes maximum of integers x and y
-exports.max = function(x, y) {
-  return x ^ ((x ^ y) & -(x < y));
-}
-
-//Checks if a number is a power of two
-exports.isPow2 = function(v) {
-  return !(v & (v-1)) && (!!v);
-}
-
-//Computes log base 2 of v
-exports.log2 = function(v) {
-  var r, shift;
-  r =     (v > 0xFFFF) << 4; v >>>= r;
-  shift = (v > 0xFF  ) << 3; v >>>= shift; r |= shift;
-  shift = (v > 0xF   ) << 2; v >>>= shift; r |= shift;
-  shift = (v > 0x3   ) << 1; v >>>= shift; r |= shift;
-  return r | (v >> 1);
-}
-
-//Computes log base 10 of v
-exports.log10 = function(v) {
-  return  (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : (v >= 10000000) ? 7 :
-          (v >= 1000000) ? 6 : (v >= 100000) ? 5 : (v >= 10000) ? 4 :
-          (v >= 1000) ? 3 : (v >= 100) ? 2 : (v >= 10) ? 1 : 0;
-}
-
-//Counts number of bits
-exports.popCount = function(v) {
-  v = v - ((v >>> 1) & 0x55555555);
-  v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
-  return ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
-}
-
-//Counts number of trailing zeros
-function countTrailingZeros(v) {
-  var c = 32;
-  v &= -v;
-  if (v) c--;
-  if (v & 0x0000FFFF) c -= 16;
-  if (v & 0x00FF00FF) c -= 8;
-  if (v & 0x0F0F0F0F) c -= 4;
-  if (v & 0x33333333) c -= 2;
-  if (v & 0x55555555) c -= 1;
-  return c;
-}
-exports.countTrailingZeros = countTrailingZeros;
-
-//Rounds to next power of 2
-exports.nextPow2 = function(v) {
-  v += v === 0;
-  --v;
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  v |= v >>> 16;
-  return v + 1;
-}
-
-//Rounds down to previous power of 2
-exports.prevPow2 = function(v) {
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  v |= v >>> 16;
-  return v - (v>>>1);
-}
-
-//Computes parity of word
-exports.parity = function(v) {
-  v ^= v >>> 16;
-  v ^= v >>> 8;
-  v ^= v >>> 4;
-  v &= 0xf;
-  return (0x6996 >>> v) & 1;
-}
-
-var REVERSE_TABLE = new Array(256);
-
-(function(tab) {
-  for(var i=0; i<256; ++i) {
-    var v = i, r = i, s = 7;
-    for (v >>>= 1; v; v >>>= 1) {
-      r <<= 1;
-      r |= v & 1;
-      --s;
-    }
-    tab[i] = (r << s) & 0xff;
-  }
-})(REVERSE_TABLE);
-
-//Reverse bits in a 32 bit word
-exports.reverse = function(v) {
-  return  (REVERSE_TABLE[ v         & 0xff] << 24) |
-          (REVERSE_TABLE[(v >>> 8)  & 0xff] << 16) |
-          (REVERSE_TABLE[(v >>> 16) & 0xff] << 8)  |
-           REVERSE_TABLE[(v >>> 24) & 0xff];
-}
-
-//Interleave bits of 2 coordinates with 16 bits.  Useful for fast quadtree codes
-exports.interleave2 = function(x, y) {
-  x &= 0xFFFF;
-  x = (x | (x << 8)) & 0x00FF00FF;
-  x = (x | (x << 4)) & 0x0F0F0F0F;
-  x = (x | (x << 2)) & 0x33333333;
-  x = (x | (x << 1)) & 0x55555555;
-
-  y &= 0xFFFF;
-  y = (y | (y << 8)) & 0x00FF00FF;
-  y = (y | (y << 4)) & 0x0F0F0F0F;
-  y = (y | (y << 2)) & 0x33333333;
-  y = (y | (y << 1)) & 0x55555555;
-
-  return x | (y << 1);
-}
-
-//Extracts the nth interleaved component
-exports.deinterleave2 = function(v, n) {
-  v = (v >>> n) & 0x55555555;
-  v = (v | (v >>> 1))  & 0x33333333;
-  v = (v | (v >>> 2))  & 0x0F0F0F0F;
-  v = (v | (v >>> 4))  & 0x00FF00FF;
-  v = (v | (v >>> 16)) & 0x000FFFF;
-  return (v << 16) >> 16;
-}
-
-
-//Interleave bits of 3 coordinates, each with 10 bits.  Useful for fast octree codes
-exports.interleave3 = function(x, y, z) {
-  x &= 0x3FF;
-  x  = (x | (x<<16)) & 4278190335;
-  x  = (x | (x<<8))  & 251719695;
-  x  = (x | (x<<4))  & 3272356035;
-  x  = (x | (x<<2))  & 1227133513;
-
-  y &= 0x3FF;
-  y  = (y | (y<<16)) & 4278190335;
-  y  = (y | (y<<8))  & 251719695;
-  y  = (y | (y<<4))  & 3272356035;
-  y  = (y | (y<<2))  & 1227133513;
-  x |= (y << 1);
-  
-  z &= 0x3FF;
-  z  = (z | (z<<16)) & 4278190335;
-  z  = (z | (z<<8))  & 251719695;
-  z  = (z | (z<<4))  & 3272356035;
-  z  = (z | (z<<2))  & 1227133513;
-  
-  return x | (z << 2);
-}
-
-//Extracts nth interleaved component of a 3-tuple
-exports.deinterleave3 = function(v, n) {
-  v = (v >>> n)       & 1227133513;
-  v = (v | (v>>>2))   & 3272356035;
-  v = (v | (v>>>4))   & 251719695;
-  v = (v | (v>>>8))   & 4278190335;
-  v = (v | (v>>>16))  & 0x3FF;
-  return (v<<22)>>22;
-}
-
-//Computes next combination in colexicographic order (this is mistakenly called nextPermutation on the bit twiddling hacks page)
-exports.nextCombination = function(v) {
-  var t = v | (v - 1);
-  return (t + 1) | (((~t & -~t) - 1) >>> (countTrailingZeros(v) + 1));
-}
-
-
-},{}],15:[function(require,module,exports){
-(function(){var Buffer = require('buffer').Buffer;
-
-module.exports = isBuffer;
-
-function isBuffer (o) {
-  return Buffer.isBuffer(o)
-    || /\[object (.+Array|Array.+)\]/.test(Object.prototype.toString.call(o));
-}
-
-})()
-},{"buffer":17}],18:[function(require,module,exports){
+},{"bit-twiddle":12}],13:[function(require,module,exports){
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
 (function() {'use strict';var aa=this;function g(a,b,d){a=a.split(".");d=d||aa;!(a[0]in d)&&d.execScript&&d.execScript("var "+a[0]);for(var c;a.length&&(c=a.shift());)!a.length&&void 0!==b?d[c]=b:d=d[c]?d[c]:d[c]={}}Math.floor(2147483648*Math.random()).toString(36);var j="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;var ba=new (j?Uint8Array:Array)(256),l;for(l=0;256>l;++l){for(var ca=ba,da=l,n=l,o=n,q=7,n=n>>>1;n;n>>>=1)o<<=1,o|=n&1,--q;ca[da]=(o<<q&255)>>>0};var ea=[0,1996959894,3993919788,2567524794,124634137,1886057615,3915621685,2657392035,249268274,2044508324,3772115230,2547177864,162941995,2125561021,3887607047,2428444049,498536548,1789927666,4089016648,2227061214,450548861,1843258603,4107580753,2211677639,325883990,1684777152,4251122042,2321926636,335633487,1661365465,4195302755,2366115317,997073096,1281953886,3579855332,2724688242,1006888145,1258607687,3524101629,2768942443,901097722,1119000684,3686517206,2898065728,853044451,1172266101,3705015759,
 2882616665,651767980,1373503546,3369554304,3218104598,565507253,1454621731,3485111705,3099436303,671266974,1594198024,3322730930,2970347812,795835527,1483230225,3244367275,3060149565,1994146192,31158534,2563907772,4023717930,1907459465,112637215,2680153253,3904427059,2013776290,251722036,2517215374,3775830040,2137656763,141376813,2439277719,3865271297,1802195444,476864866,2238001368,4066508878,1812370925,453092731,2181625025,4111451223,1706088902,314042704,2344532202,4240017532,1658658271,366619977,
@@ -1318,7 +1001,7 @@ U.prototype.m=function(){var a=this.input,b;b=this.s.m();this.a=this.s.a;if(this
 D.ADAPTIVE=D.u;D.BLOCK=D.v;g("Zlib.Inflate.prototype.decompress",U.prototype.m,void 0);var ja=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];j&&new Uint16Array(ja);var ka=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,258,258];j&&new Uint16Array(ka);var la=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0];j&&new Uint8Array(la);var ma=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];j&&new Uint16Array(ma);
 var na=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];j&&new Uint8Array(na);var W=new (j?Uint8Array:Array)(288),X,Y;X=0;for(Y=W.length;X<Y;++X)W[X]=143>=X?8:255>=X?9:279>=X?7:8;r(W);var Z=new (j?Uint8Array:Array)(30),$,oa;$=0;for(oa=Z.length;$<oa;++$)Z[$]=5;r(Z);var V=8;}).call(module.exports);
 
-},{}],19:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 require=(function(e,t,n,r){function i(r){if(!n[r]){if(!t[r]){if(e)return e(r);throw new Error("Cannot find module '"+r+"'")}var s=n[r]={exports:{}};t[r][0](function(e){var n=t[r][1][e];return i(n?n:e)},s,s.exports)}return n[r].exports}for(var s=0;s<r.length;s++)i(r[s]);return i})(typeof require!=="undefined"&&require,{1:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
@@ -5183,7 +4866,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 },{}]},{},[])
 ;;module.exports=require("buffer-browserify")
 
-},{}],20:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function(process,Buffer){/** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
 (function() {'use strict';function m(a){throw a;}var p=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function I(a,c){this.index="number"===typeof c?c:0;this.bitindex=0;this.buffer=a instanceof(A?Uint8Array:Array)?a:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&m(Error("invalid index"));this.buffer.length<=this.index&&this.expandBuffer()}I.prototype.expandBuffer=function(){var a=this.buffer,c,b=a.length,d=new (A?Uint8Array:Array)(b<<1);if(A)d.set(a);else for(c=0;c<b;++c)d[c]=a[c];return this.buffer=d};
 I.prototype.writeBits=function(a,c,b){var d=this.buffer,f=this.index,e=this.bitindex,g=d[f],h;b&&1<c&&(a=8<c?(K[a&255]<<24|K[a>>>8&255]<<16|K[a>>>16&255]<<8|K[a>>>24&255])>>32-c:K[a]>>8-c);if(8>c+e)g=g<<c|a,e+=c;else for(h=0;h<c;++h)g=g<<1|a>>c-h-1&1,8===++e&&(e=0,d[f++]=K[g],g=0,f===d.length&&(d=this.expandBuffer()));d[f]=g;this.buffer=d;this.bitindex=e;this.index=f};
@@ -5242,7 +4925,523 @@ function Hb(a,c){var b;a.subarray=a.slice;b=(new Db(a)).decompress();c||(c={});r
 function Mb(a){var c=new Buffer(a.length),b,d;b=0;for(d=a.length;b<d;++b)c[b]=a[b];return c};var Cb=8;}).call(this);
 
 })(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"__browserify_process":9,"__browserify_buffer":19}],16:[function(require,module,exports){
+},{"__browserify_process":7,"__browserify_buffer":14}],8:[function(require,module,exports){
+module.exports = Level
+
+var IDB = require('idb-wrapper')
+var AbstractLevelDOWN = require('abstract-leveldown').AbstractLevelDOWN
+var util = require('util')
+var Iterator = require('./iterator')
+var isBuffer = require('isbuffer')
+
+function Level(location) {
+  if (!(this instanceof Level)) return new Level(location)
+  if (!location) throw new Error("constructor requires at least a location argument")
+  
+  this.location = location
+}
+
+util.inherits(Level, AbstractLevelDOWN)
+
+Level.prototype._open = function(options, callback) {
+  var self = this
+  
+  this.idb = new IDB({
+    storeName: this.location,
+    autoIncrement: false,
+    keyPath: null,
+    onStoreReady: function () {
+      callback && callback(null, self.idb)
+    }, 
+    onError: function(err) {
+      callback && callback(err)
+    }
+  })
+}
+
+Level.prototype._get = function (key, options, callback) {
+  this.idb.get(key, function (value) {
+    if (value === undefined) {
+      // 'NotFound' error, consistent with LevelDOWN API
+      return callback(new Error('NotFound'))
+    }
+    if (options.asBuffer !== false && !isBuffer(value))
+      value = StringToArrayBuffer(String(value))
+    return callback(null, value, key)
+  }, callback)
+}
+
+Level.prototype._del = function(id, options, callback) {
+  this.idb.remove(id, callback, callback)
+}
+
+Level.prototype._put = function (key, value, options, callback) {
+  this.idb.put(key, value, function() { callback() }, callback)
+}
+
+Level.prototype.iterator = function (options) {
+  if (typeof options !== 'object') options = {}
+  return new Iterator(this.idb, options)
+}
+
+Level.prototype._batch = function (array, options, callback) {
+  return this.idb.batch(array, function(){ callback() }, callback)
+}
+
+Level.prototype._close = function (callback) {
+  this.idb.db.close()
+  callback()
+}
+
+Level.prototype._approximateSize = function() {
+  throw new Error('Not implemented')
+}
+
+Level.prototype._isBuffer = isBuffer
+
+var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (isBuffer(obj) && obj.byteLength === 0)
+    return new Error(type + ' cannot be an empty ArrayBuffer')
+  if (String(obj) === '')
+    return new Error(type + ' cannot be an empty String')
+  if (obj.length === 0)
+    return new Error(type + ' cannot be an empty Array')
+}
+
+function ArrayBufferToString(buf) {
+  return String.fromCharCode.apply(null, new Uint16Array(buf))
+}
+
+function StringToArrayBuffer(str) {
+  var buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
+  var bufView = new Uint16Array(buf)
+  for (var i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i)
+  }
+  return buf
+}
+
+},{"util":6,"./iterator":16,"abstract-leveldown":17,"isbuffer":18,"idb-wrapper":19}],10:[function(require,module,exports){
+var mcChunk = require('minecraft-chunk')
+
+module.exports = RegionRenderer
+
+module.exports.chunkPosition = chunkPosition
+
+function chunkPosition(x, z) {
+  return [x >> 4, z >> 4]
+}
+
+function RegionRenderer(region, options) {
+  if (!(this instanceof RegionRenderer)) return new RegionRenderer(region, options)
+  this.region = region
+  this.options = options
+}
+
+RegionRenderer.prototype.positionBounds = function() {
+  var cb = this.chunkBounds()
+  var minx = cb[0] << 4
+  var minz = cb[2] << 4
+  var maxx = (cb[1] + 1 << 4) - 1
+  var maxz = (cb[3] + 1 << 4) - 1
+  return [[minx, 0, minz], [maxx, 256, maxz]]
+}
+
+RegionRenderer.prototype.chunkBounds = function() {
+  var x = +this.region.x
+  var z = +this.region.z
+  var minx = x * 32
+  var minz = z * 32
+  var maxx = (x + 1) * 32 - 1
+  var maxz = (z + 1) * 32 - 1
+  return [minx, maxx, minz, maxz]
+}
+
+RegionRenderer.prototype.loadAll = function() {
+  var chunks = this.chunkBounds()
+  for (var x = chunks[0]; x <= chunks[1]; x++ ) {
+    for (var z = chunks[2]; z <= chunks[3]; z++ ) {
+      this.loadChunk(x, z)
+    }
+  }
+}
+
+RegionRenderer.prototype.loadNearby = function(pos, size) {
+  var x = pos[0]
+  var z = pos[2]
+  var chunkPos = chunkPosition(x, z)
+  var minx = (chunkPos[0]) - size
+  var minz = (chunkPos[1]) - size
+  var maxx = (chunkPos[0]) + size
+  var maxz = (chunkPos[1]) + size
+  for (var x = minx; x <= maxx; x++ ) {
+    for (var z = minz; z <= maxz; z++ ) {
+      this.loadChunk(x, z)
+    }
+  }
+}
+
+RegionRenderer.prototype.initializeChunk = function(chunk, chunkX, chunkZ) {
+  var options = {
+    nbt: chunk,
+    ymin: this.options.ymin,
+    showstuff: false,
+    superflat: false,
+    chunkX: chunkX,
+    chunkZ: chunkZ
+  }
+  return mcChunk(options)
+}
+
+RegionRenderer.prototype.loadChunk = function(chunkX, chunkZ) {
+  var self = this
+  if (this.options.onChunk) this.options.onChunk(chunkX, chunkZ)
+  var chunk = this.region.getChunk(chunkX, chunkZ)
+  if (chunk != null) {
+    var view = this.initializeChunk(chunk, chunkX, chunkZ)
+    var voxels = []
+    view.extractChunk(function(x, y, z, block) {
+      self.options.onVoxel(x, y, z, block, chunkX, chunkZ)
+    })
+  } else {
+    return false
+  }
+}
+},{"minecraft-chunk":20}],11:[function(require,module,exports){
+(function(process){var dataview = require('jDataView');
+var NBTReader = require('minecraft-nbt').NBTReader;
+var chunk = require('minecraft-chunk');
+if (process.browser) var Zlib = require('./zlib-inflate.min').Zlib
+else var Zlib = require('./zlibjs-node')
+
+var CHUNK_HEADER_SIZE, SECTOR_BYTES, SECTOR_INTS, emptySector, emptySectorBuffer, sizeDelta,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+SECTOR_BYTES = 4096;
+
+SECTOR_INTS = SECTOR_BYTES / 4;
+
+CHUNK_HEADER_SIZE = 5;
+
+emptySectorBuffer = new ArrayBuffer(4096);
+
+emptySector = new Uint8Array(emptySectorBuffer);
+
+sizeDelta = 0;
+
+function mod (num, n) { return ((num % n) + n) % n }
+
+function Region(buffer, x, z) {
+  var i, nSectors, offset, sectorNum;
+
+  this.buffer = buffer;
+  this.x = x;
+  this.z = z;
+  this.outOfBounds = __bind(this.outOfBounds, this);
+  this.getOffset = __bind(this.getOffset, this);
+  this.getChunk = __bind(this.getChunk, this);
+  this.dataView = new dataview(this.buffer);
+  sizeDelta = 0;
+  var length = this.buffer.byteLength || this.buffer.length
+  nSectors = length / SECTOR_BYTES;
+  this.sectorFree = [];
+  for (i = 0; i <= nSectors - 1; ++i)
+    this.sectorFree.push(true)
+  this.sectorFree[0] = false;
+  this.sectorFree[1] = false;
+  this.dataView.seek(0);
+  this.offsets = new Int32Array(this.buffer, 0, SECTOR_INTS);
+  
+  for (var i = 0; i <= SECTOR_INTS; ++i) {
+    offset = this.dataView.getInt32();
+    if (offset !== 0 && (offset >> 16) + ((offset >> 8) & 0xFF) <= this.sectorFree.length) {
+      for (sectorNum = 0; sectorNum <= ((offset >> 8) & 0xFF) - 1; ++sectorNum) {
+        var el = (offset >> 16) + sectorNum
+        this.sectorFree[el] = false;
+      }
+    }
+  }
+}
+
+Region.prototype.getChunk = function(x, z) {
+  var data, length, nbtReader, retval, retvalbytes, version;
+  if (this.outOfBounds(x, z)) return null
+  var offset = this.getOffset(x, z)
+  if (offset === 0) {
+    return null
+  } else {
+    this.dataView.seek(offset)
+    length = this.dataView.getInt32()
+    version = this.dataView.getUint8()
+    data = new Uint8Array(this.buffer, this.dataView.tell(), length)
+    if (process.browser) retvalbytes = new Zlib.Inflate(data).decompress()
+    else retvalbytes = Zlib.inflateSync(data)
+    nbtReader = new NBTReader(retvalbytes)
+    retval = nbtReader.read()
+    return retval
+  }
+};
+
+Region.prototype.outOfBounds = function(x, z) {
+  var rx = +this.x
+  var rz = +this.z
+  var minx = rx * 32
+  var minz = rz * 32
+  var maxx = (rx + 1) * 32 - 1
+  var maxz = (rz + 1) * 32 - 1
+  if (maxx < minx) {
+    minx = (rx + 1) * 32 - 1
+    maxx = rx * 32
+  }
+  if (maxz < minz) {
+    minz = (rz + 1) * 32 - 1
+    maxz = rz * 32
+  }
+  return x < minx || x > maxx || z < minz || z > maxz
+};
+
+Region.prototype.getOffset = function(x, z) {
+  var bytes, locationOffset, offset, sectors;
+  x = Math.abs(mod(x, 32))
+  z = Math.abs(mod(z, 32))  
+  locationOffset = 4 * (x + z * 32)
+  bytes = new Uint8Array(this.buffer, locationOffset, 4);
+  sectors = bytes[3];
+  offset = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
+  if (offset === 0) {
+    return 0;
+  } else {
+    return offset * 4096;
+  }
+};
+
+module.exports = function(data, x, z) {
+  return new Region(data, x, z)
+}
+
+})(require("__browserify_process"))
+},{"./zlib-inflate.min":13,"./zlibjs-node":15,"jDataView":21,"minecraft-nbt":22,"minecraft-chunk":23,"__browserify_process":7}],18:[function(require,module,exports){
+(function(){var Buffer = require('buffer').Buffer;
+
+module.exports = isBuffer;
+
+function isBuffer (o) {
+  return Buffer.isBuffer(o)
+    || /\[object (.+Array|Array.+)\]/.test(Object.prototype.toString.call(o));
+}
+
+})()
+},{"buffer":24}],12:[function(require,module,exports){
+/**
+ * Bit twiddling hacks for JavaScript.
+ *
+ * Author: Mikola Lysenko
+ *
+ * Ported from Stanford bit twiddling hack library:
+ *    http://graphics.stanford.edu/~seander/bithacks.html
+ */
+
+"use strict"; "use restrict";
+
+//Number of bits in an integer
+var INT_BITS = 32;
+
+//Constants
+exports.INT_BITS  = INT_BITS;
+exports.INT_MAX   =  0x7fffffff;
+exports.INT_MIN   = -1<<(INT_BITS-1);
+
+//Returns -1, 0, +1 depending on sign of x
+exports.sign = function(v) {
+  return (v > 0) - (v < 0);
+}
+
+//Computes absolute value of integer
+exports.abs = function(v) {
+  var mask = v >> (INT_BITS-1);
+  return (v ^ mask) - mask;
+}
+
+//Computes minimum of integers x and y
+exports.min = function(x, y) {
+  return y ^ ((x ^ y) & -(x < y));
+}
+
+//Computes maximum of integers x and y
+exports.max = function(x, y) {
+  return x ^ ((x ^ y) & -(x < y));
+}
+
+//Checks if a number is a power of two
+exports.isPow2 = function(v) {
+  return !(v & (v-1)) && (!!v);
+}
+
+//Computes log base 2 of v
+exports.log2 = function(v) {
+  var r, shift;
+  r =     (v > 0xFFFF) << 4; v >>>= r;
+  shift = (v > 0xFF  ) << 3; v >>>= shift; r |= shift;
+  shift = (v > 0xF   ) << 2; v >>>= shift; r |= shift;
+  shift = (v > 0x3   ) << 1; v >>>= shift; r |= shift;
+  return r | (v >> 1);
+}
+
+//Computes log base 10 of v
+exports.log10 = function(v) {
+  return  (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : (v >= 10000000) ? 7 :
+          (v >= 1000000) ? 6 : (v >= 100000) ? 5 : (v >= 10000) ? 4 :
+          (v >= 1000) ? 3 : (v >= 100) ? 2 : (v >= 10) ? 1 : 0;
+}
+
+//Counts number of bits
+exports.popCount = function(v) {
+  v = v - ((v >>> 1) & 0x55555555);
+  v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
+  return ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
+}
+
+//Counts number of trailing zeros
+function countTrailingZeros(v) {
+  var c = 32;
+  v &= -v;
+  if (v) c--;
+  if (v & 0x0000FFFF) c -= 16;
+  if (v & 0x00FF00FF) c -= 8;
+  if (v & 0x0F0F0F0F) c -= 4;
+  if (v & 0x33333333) c -= 2;
+  if (v & 0x55555555) c -= 1;
+  return c;
+}
+exports.countTrailingZeros = countTrailingZeros;
+
+//Rounds to next power of 2
+exports.nextPow2 = function(v) {
+  v += v === 0;
+  --v;
+  v |= v >>> 1;
+  v |= v >>> 2;
+  v |= v >>> 4;
+  v |= v >>> 8;
+  v |= v >>> 16;
+  return v + 1;
+}
+
+//Rounds down to previous power of 2
+exports.prevPow2 = function(v) {
+  v |= v >>> 1;
+  v |= v >>> 2;
+  v |= v >>> 4;
+  v |= v >>> 8;
+  v |= v >>> 16;
+  return v - (v>>>1);
+}
+
+//Computes parity of word
+exports.parity = function(v) {
+  v ^= v >>> 16;
+  v ^= v >>> 8;
+  v ^= v >>> 4;
+  v &= 0xf;
+  return (0x6996 >>> v) & 1;
+}
+
+var REVERSE_TABLE = new Array(256);
+
+(function(tab) {
+  for(var i=0; i<256; ++i) {
+    var v = i, r = i, s = 7;
+    for (v >>>= 1; v; v >>>= 1) {
+      r <<= 1;
+      r |= v & 1;
+      --s;
+    }
+    tab[i] = (r << s) & 0xff;
+  }
+})(REVERSE_TABLE);
+
+//Reverse bits in a 32 bit word
+exports.reverse = function(v) {
+  return  (REVERSE_TABLE[ v         & 0xff] << 24) |
+          (REVERSE_TABLE[(v >>> 8)  & 0xff] << 16) |
+          (REVERSE_TABLE[(v >>> 16) & 0xff] << 8)  |
+           REVERSE_TABLE[(v >>> 24) & 0xff];
+}
+
+//Interleave bits of 2 coordinates with 16 bits.  Useful for fast quadtree codes
+exports.interleave2 = function(x, y) {
+  x &= 0xFFFF;
+  x = (x | (x << 8)) & 0x00FF00FF;
+  x = (x | (x << 4)) & 0x0F0F0F0F;
+  x = (x | (x << 2)) & 0x33333333;
+  x = (x | (x << 1)) & 0x55555555;
+
+  y &= 0xFFFF;
+  y = (y | (y << 8)) & 0x00FF00FF;
+  y = (y | (y << 4)) & 0x0F0F0F0F;
+  y = (y | (y << 2)) & 0x33333333;
+  y = (y | (y << 1)) & 0x55555555;
+
+  return x | (y << 1);
+}
+
+//Extracts the nth interleaved component
+exports.deinterleave2 = function(v, n) {
+  v = (v >>> n) & 0x55555555;
+  v = (v | (v >>> 1))  & 0x33333333;
+  v = (v | (v >>> 2))  & 0x0F0F0F0F;
+  v = (v | (v >>> 4))  & 0x00FF00FF;
+  v = (v | (v >>> 16)) & 0x000FFFF;
+  return (v << 16) >> 16;
+}
+
+
+//Interleave bits of 3 coordinates, each with 10 bits.  Useful for fast octree codes
+exports.interleave3 = function(x, y, z) {
+  x &= 0x3FF;
+  x  = (x | (x<<16)) & 4278190335;
+  x  = (x | (x<<8))  & 251719695;
+  x  = (x | (x<<4))  & 3272356035;
+  x  = (x | (x<<2))  & 1227133513;
+
+  y &= 0x3FF;
+  y  = (y | (y<<16)) & 4278190335;
+  y  = (y | (y<<8))  & 251719695;
+  y  = (y | (y<<4))  & 3272356035;
+  y  = (y | (y<<2))  & 1227133513;
+  x |= (y << 1);
+  
+  z &= 0x3FF;
+  z  = (z | (z<<16)) & 4278190335;
+  z  = (z | (z<<8))  & 251719695;
+  z  = (z | (z<<4))  & 3272356035;
+  z  = (z | (z<<2))  & 1227133513;
+  
+  return x | (z << 2);
+}
+
+//Extracts nth interleaved component of a 3-tuple
+exports.deinterleave3 = function(v, n) {
+  v = (v >>> n)       & 1227133513;
+  v = (v | (v>>>2))   & 3272356035;
+  v = (v | (v>>>4))   & 251719695;
+  v = (v | (v>>>8))   & 4278190335;
+  v = (v | (v>>>16))  & 0x3FF;
+  return (v<<22)>>22;
+}
+
+//Computes next combination in colexicographic order (this is mistakenly called nextPermutation on the bit twiddling hacks page)
+exports.nextCombination = function(v) {
+  var t = v | (v - 1);
+  return (t + 1) | (((~t & -~t) - 1) >>> (countTrailingZeros(v) + 1));
+}
+
+
+},{}],19:[function(require,module,exports){
 (function(){/*jshint expr:true */
 /*global window:false, console:false, define:false, module:false */
 
@@ -6232,475 +6431,7 @@ function Mb(a){var c=new Buffer(a.length),b,d;b=0;for(d=a.length;b<d;++b)c[b]=a[
 }, this);
 
 })()
-},{}],10:[function(require,module,exports){
-var mcChunk = require('minecraft-chunk')
-
-module.exports = RegionRenderer
-
-module.exports.chunkPosition = chunkPosition
-
-function chunkPosition(x, z) {
-  return [x >> 4, z >> 4]
-}
-
-function RegionRenderer(region, options) {
-  if (!(this instanceof RegionRenderer)) return new RegionRenderer(region, options)
-  this.region = region
-  this.options = options
-}
-
-RegionRenderer.prototype.positionBounds = function() {
-  var cb = this.chunkBounds()
-  var minx = cb[0] << 4
-  var minz = cb[2] << 4
-  var maxx = (cb[1] + 1 << 4) - 1
-  var maxz = (cb[3] + 1 << 4) - 1
-  return [[minx, 0, minz], [maxx, 256, maxz]]
-}
-
-RegionRenderer.prototype.chunkBounds = function() {
-  var x = +this.region.x
-  var z = +this.region.z
-  var minx = x * 32
-  var minz = z * 32
-  var maxx = (x + 1) * 32 - 1
-  var maxz = (z + 1) * 32 - 1
-  return [minx, maxx, minz, maxz]
-}
-
-RegionRenderer.prototype.loadAll = function() {
-  var chunks = this.chunkBounds()
-  for (var x = chunks[0]; x <= chunks[1]; x++ ) {
-    for (var z = chunks[2]; z <= chunks[3]; z++ ) {
-      this.loadChunk(x, z)
-    }
-  }
-}
-
-RegionRenderer.prototype.loadNearby = function(pos, size) {
-  var x = pos[0]
-  var z = pos[2]
-  var chunkPos = chunkPosition(x, z)
-  var minx = (chunkPos[0]) - size
-  var minz = (chunkPos[1]) - size
-  var maxx = (chunkPos[0]) + size
-  var maxz = (chunkPos[1]) + size
-  for (var x = minx; x <= maxx; x++ ) {
-    for (var z = minz; z <= maxz; z++ ) {
-      this.loadChunk(x, z)
-    }
-  }
-}
-
-RegionRenderer.prototype.initializeChunk = function(chunk, chunkX, chunkZ) {
-  var options = {
-    nbt: chunk,
-    ymin: this.options.ymin,
-    showstuff: false,
-    superflat: false,
-    chunkX: chunkX,
-    chunkZ: chunkZ
-  }
-  return mcChunk(options)
-}
-
-RegionRenderer.prototype.loadChunk = function(chunkX, chunkZ) {
-  var self = this
-  if (this.options.onChunk) this.options.onChunk(chunkX, chunkZ)
-  var chunk = this.region.getChunk(chunkX, chunkZ)
-  if (chunk != null) {
-    var view = this.initializeChunk(chunk, chunkX, chunkZ)
-    var voxels = []
-    view.extractChunk(function(x, y, z, block) {
-      self.options.onVoxel(x, y, z, block, chunkX, chunkZ)
-    })
-  } else {
-    return false
-  }
-}
-},{"minecraft-chunk":21}],11:[function(require,module,exports){
-(function(process){var dataview = require('jDataView');
-var NBTReader = require('minecraft-nbt').NBTReader;
-var chunk = require('minecraft-chunk');
-if (process.browser) var Zlib = require('./zlib-inflate.min').Zlib
-else var Zlib = require('./zlibjs-node')
-
-var CHUNK_HEADER_SIZE, SECTOR_BYTES, SECTOR_INTS, emptySector, emptySectorBuffer, sizeDelta,
-  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-SECTOR_BYTES = 4096;
-
-SECTOR_INTS = SECTOR_BYTES / 4;
-
-CHUNK_HEADER_SIZE = 5;
-
-emptySectorBuffer = new ArrayBuffer(4096);
-
-emptySector = new Uint8Array(emptySectorBuffer);
-
-sizeDelta = 0;
-
-function mod (num, n) { return ((num % n) + n) % n }
-
-function Region(buffer, x, z) {
-  var i, nSectors, offset, sectorNum;
-
-  this.buffer = buffer;
-  this.x = x;
-  this.z = z;
-  this.outOfBounds = __bind(this.outOfBounds, this);
-  this.getOffset = __bind(this.getOffset, this);
-  this.getChunk = __bind(this.getChunk, this);
-  this.dataView = new dataview(this.buffer);
-  sizeDelta = 0;
-  var length = this.buffer.byteLength || this.buffer.length
-  nSectors = length / SECTOR_BYTES;
-  this.sectorFree = [];
-  for (i = 0; i <= nSectors - 1; ++i)
-    this.sectorFree.push(true)
-  this.sectorFree[0] = false;
-  this.sectorFree[1] = false;
-  this.dataView.seek(0);
-  this.offsets = new Int32Array(this.buffer, 0, SECTOR_INTS);
-  
-  for (var i = 0; i <= SECTOR_INTS; ++i) {
-    offset = this.dataView.getInt32();
-    if (offset !== 0 && (offset >> 16) + ((offset >> 8) & 0xFF) <= this.sectorFree.length) {
-      for (sectorNum = 0; sectorNum <= ((offset >> 8) & 0xFF) - 1; ++sectorNum) {
-        var el = (offset >> 16) + sectorNum
-        this.sectorFree[el] = false;
-      }
-    }
-  }
-}
-
-Region.prototype.getChunk = function(x, z) {
-  var data, length, nbtReader, retval, retvalbytes, version;
-  if (this.outOfBounds(x, z)) return null
-  var offset = this.getOffset(x, z)
-  if (offset === 0) {
-    return null
-  } else {
-    this.dataView.seek(offset)
-    length = this.dataView.getInt32()
-    version = this.dataView.getUint8()
-    data = new Uint8Array(this.buffer, this.dataView.tell(), length)
-    if (process.browser) retvalbytes = new Zlib.Inflate(data).decompress()
-    else retvalbytes = Zlib.inflateSync(data)
-    nbtReader = new NBTReader(retvalbytes)
-    retval = nbtReader.read()
-    return retval
-  }
-};
-
-Region.prototype.outOfBounds = function(x, z) {
-  var rx = +this.x
-  var rz = +this.z
-  var minx = rx * 32
-  var minz = rz * 32
-  var maxx = (rx + 1) * 32 - 1
-  var maxz = (rz + 1) * 32 - 1
-  if (maxx < minx) {
-    minx = (rx + 1) * 32 - 1
-    maxx = rx * 32
-  }
-  if (maxz < minz) {
-    minz = (rz + 1) * 32 - 1
-    maxz = rz * 32
-  }
-  return x < minx || x > maxx || z < minz || z > maxz
-};
-
-Region.prototype.getOffset = function(x, z) {
-  var bytes, locationOffset, offset, sectors;
-  x = Math.abs(mod(x, 32))
-  z = Math.abs(mod(z, 32))  
-  locationOffset = 4 * (x + z * 32)
-  bytes = new Uint8Array(this.buffer, locationOffset, 4);
-  sectors = bytes[3];
-  offset = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
-  if (offset === 0) {
-    return 0;
-  } else {
-    return offset * 4096;
-  }
-};
-
-module.exports = function(data, x, z) {
-  return new Region(data, x, z)
-}
-
-})(require("__browserify_process"))
-},{"./zlib-inflate.min":18,"./zlibjs-node":20,"jDataView":22,"minecraft-nbt":23,"minecraft-chunk":24,"__browserify_process":9}],13:[function(require,module,exports){
-var util = require('util')
-var AbstractIterator  = require('abstract-leveldown').AbstractIterator
-module.exports = Iterator
-
-function Iterator (db, options) {
-  if (!options) options = {}
-  this.options = options
-  AbstractIterator.call(this, db)
-  this._order = !!options.reverse ? 'DESC': 'ASC'
-  this._start = options.start
-  this._limit = options.limit
-  if (this._limit) this._count = 0
-  this._end   = options.end
-  this._done = false
-}
-
-util.inherits(Iterator, AbstractIterator)
-
-Iterator.prototype.createIterator = function() {
-  var lower, upper
-  var onlyStart = typeof this._start !== 'undefined' && typeof this._end === 'undefined'
-  var onlyEnd = typeof this._start === 'undefined' && typeof this._end !== 'undefined'
-  var startAndEnd = typeof this._start !== 'undefined' && typeof this._end !== 'undefined'
-  if (onlyStart) {
-    var index = this._start
-    if (this._order === 'ASC') {
-      lower = index
-    } else {
-      upper = index
-    }
-  } else if (onlyEnd) {
-    var index = this._end
-    if (this._order === 'DESC') {
-      lower = index
-    } else {
-      upper = index
-    }
-  } else if (startAndEnd) {
-    lower = this._start
-    upper = this._end
-    if (this._start > this._end) {
-      lower = this._end
-      upper = this._start
-    }
-  }
-  if (lower || upper) {
-    this._keyRange = this.options.keyRange || this.db.makeKeyRange({
-      lower: lower,
-      upper: upper
-      // TODO expose excludeUpper/excludeLower
-    })
-  }
-  this.iterator = this.db.iterate(this.onItem.bind(this), {
-    keyRange: this._keyRange,
-    autoContinue: false,
-    order: this._order,
-    onError: function(err) { console.log('horrible error', err) },
-  })
-}
-
-// TODO the limit implementation here just ignores all reads after limit has been reached
-// it should cancel the iterator instead but I don't know how
-Iterator.prototype.onItem = function (value, cursor, cursorTransaction) {
-  if (!cursor && this.callback) {
-    this.callback()
-    this.callback = false
-    return
-  }
-  if (this._limit && this._limit > 0) {
-    if (this._limit > this._count) this.callback(false, cursor.key, cursor.value)
-  } else {
-    this.callback(false, cursor.key, cursor.value)
-  }
-  if (this._limit) this._count++
-  if (cursor) cursor.continue()
-}
-
-Iterator.prototype._next = function (callback) {
-  if (!callback) return new Error('next() requires a callback argument')
-  if (!this._started) {
-    this.createIterator()
-    this._started = true
-  }
-  this.callback = callback
-}
-},{"util":6,"abstract-leveldown":14}],14:[function(require,module,exports){
-(function(process,Buffer){/* Copyright (c) 2013 Rod Vagg, MIT License */
-
-var AbstractIterator     = require('./abstract-iterator')
-  , AbstractChainedBatch = require('./abstract-chained-batch')
-
-function AbstractLevelDOWN (location) {
-  if (!arguments.length || location === undefined)
-    throw new Error('constructor requires at least a location argument')
-
-  if (typeof location != 'string')
-    throw new Error('constructor requires a location string argument')
-
-  this.location = location
-}
-
-AbstractLevelDOWN.prototype.open = function (options, callback) {
-  if (typeof options == 'function')
-    callback = options
-  if (typeof callback != 'function')
-    throw new Error('open() requires a callback argument')
-  if (typeof options != 'object')
-    options = {}
-
-  if (typeof this._open == 'function')
-    return this._open(options, callback)
-
-  process.nextTick(callback)
-}
-
-AbstractLevelDOWN.prototype.close = function (callback) {
-  if (typeof callback != 'function')
-    throw new Error('close() requires a callback argument')
-
-  if (typeof this._close == 'function')
-    return this._close(callback)
-
-  process.nextTick(callback)
-}
-
-AbstractLevelDOWN.prototype.get = function (key, options, callback) {
-  if (typeof options == 'function')
-    callback = options
-  if (typeof callback != 'function')
-    throw new Error('get() requires a callback argument')
-  var err = this._checkKeyValue(key, 'key', this._isBuffer)
-  if (err) return callback(err)
-  if (!this._isBuffer(key)) key = String(key)
-  if (typeof options != 'object')
-    options = {}
-
-  if (typeof this._get == 'function')
-    return this._get(key, options, callback)
-
-  process.nextTick(callback.bind(null, new Error('NotFound')))
-}
-
-AbstractLevelDOWN.prototype.put = function (key, value, options, callback) {
-  if (typeof options == 'function')
-    callback = options
-  if (typeof callback != 'function')
-    throw new Error('put() requires a callback argument')
-  var err = this._checkKeyValue(key, 'key', this._isBuffer)
-  if (err) return callback(err)
-  err = this._checkKeyValue(value, 'value', this._isBuffer)
-  if (err) return callback(err)
-  if (!this._isBuffer(key)) key = String(key)
-  // coerce value to string in node, dont touch it in browser
-  // (indexeddb can store any JS type)
-  if (!this._isBuffer(value) && !process.browser) value = String(value)
-  if (typeof options != 'object')
-    options = {}
-  if (typeof this._put == 'function')
-    return this._put(key, value, options, callback)
-
-  process.nextTick(callback)
-}
-
-AbstractLevelDOWN.prototype.del = function (key, options, callback) {
-  if (typeof options == 'function')
-    callback = options
-  if (typeof callback != 'function')
-    throw new Error('del() requires a callback argument')
-  var err = this._checkKeyValue(key, 'key', this._isBuffer)
-  if (err) return callback(err)
-  if (!this._isBuffer(key)) key = String(key)
-  if (typeof options != 'object')
-    options = {}
-
-
-  if (typeof this._del == 'function')
-    return this._del(key, options, callback)
-
-  process.nextTick(callback)
-}
-
-AbstractLevelDOWN.prototype.batch = function (array, options, callback) {
-  if (!arguments.length)
-    return this._chainedBatch()
-
-  if (typeof options == 'function')
-    callback = options
-  if (typeof callback != 'function')
-    throw new Error('batch(array) requires a callback argument')
-  if (!Array.isArray(array))
-    return callback(new Error('batch(array) requires an array argument'))
-  if (typeof options != 'object')
-    options = {}
-
-  var i = 0
-    , l = array.length
-    , e
-    , err
-
-  for (; i < l; i++) {
-    e = array[i]
-    if (typeof e != 'object') continue;
-
-    err = this._checkKeyValue(e.type, 'type', this._isBuffer)
-    if (err) return callback(err)
-
-    err = this._checkKeyValue(e.key, 'key', this._isBuffer)
-    if (err) return callback(err)
-
-    if (e.type == 'put') {
-      err = this._checkKeyValue(e.value, 'value', this._isBuffer)
-      if (err) return callback(err)
-    }
-  }
-
-  if (typeof this._batch == 'function')
-    return this._batch(array, options, callback)
-
-  process.nextTick(callback)
-}
-
-AbstractLevelDOWN.prototype.approximateSize = function (start, end, callback) {
-  if (start == null || end == null || typeof start == 'function' || typeof end == 'function')
-    throw new Error('approximateSize() requires valid `start`, `end` and `callback` arguments')
-  if (typeof callback != 'function')
-    throw new Error('approximateSize() requires a callback argument')
-
-  if (!this._isBuffer(start)) start = String(start)
-  if (!this._isBuffer(end)) end = String(end)
-  if (typeof this._approximateSize == 'function')
-    return this._approximateSize(start, end, callback)
-
-  process.nextTick(callback.bind(null, null, 0))
-}
-
-AbstractLevelDOWN.prototype.iterator = function (options) {
-  if (typeof options != 'object')
-    options = {}
-
-  if (typeof this._iterator == 'function')
-    return this._iterator(options)
-
-  return new AbstractIterator(this)
-}
-
-AbstractLevelDOWN.prototype._chainedBatch = function () {
-  return new AbstractChainedBatch(this)
-}
-
-AbstractLevelDOWN.prototype._isBuffer = function (obj) {
-  return Buffer.isBuffer(obj)
-}
-
-AbstractLevelDOWN.prototype._checkKeyValue = function (obj, type) {
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (this._isBuffer(obj)) {
-    if (obj.length === 0)
-      return new Error(type + ' cannot be an empty Buffer')
-  } else if (String(obj) === '')
-    return new Error(type + ' cannot be an empty String')
-}
-
-module.exports.AbstractLevelDOWN = AbstractLevelDOWN
-module.exports.AbstractIterator  = AbstractIterator
-})(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"./abstract-iterator":25,"./abstract-chained-batch":26,"__browserify_process":9,"__browserify_buffer":19}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function(Buffer){//
 // jDataView by Vjeux - Jan 2010
 //
@@ -7199,7 +6930,276 @@ if (typeof module !== 'undefined') {
 })(this);
 
 })(require("__browserify_buffer").Buffer)
-},{"__browserify_buffer":19}],27:[function(require,module,exports){
+},{"__browserify_buffer":14}],16:[function(require,module,exports){
+var util = require('util')
+var AbstractIterator  = require('abstract-leveldown').AbstractIterator
+module.exports = Iterator
+
+function Iterator (db, options) {
+  if (!options) options = {}
+  this.options = options
+  AbstractIterator.call(this, db)
+  this._order = !!options.reverse ? 'DESC': 'ASC'
+  this._start = options.start
+  this._limit = options.limit
+  if (this._limit) this._count = 0
+  this._end   = options.end
+  this._done = false
+}
+
+util.inherits(Iterator, AbstractIterator)
+
+Iterator.prototype.createIterator = function() {
+  var lower, upper
+  var onlyStart = typeof this._start !== 'undefined' && typeof this._end === 'undefined'
+  var onlyEnd = typeof this._start === 'undefined' && typeof this._end !== 'undefined'
+  var startAndEnd = typeof this._start !== 'undefined' && typeof this._end !== 'undefined'
+  if (onlyStart) {
+    var index = this._start
+    if (this._order === 'ASC') {
+      lower = index
+    } else {
+      upper = index
+    }
+  } else if (onlyEnd) {
+    var index = this._end
+    if (this._order === 'DESC') {
+      lower = index
+    } else {
+      upper = index
+    }
+  } else if (startAndEnd) {
+    lower = this._start
+    upper = this._end
+    if (this._start > this._end) {
+      lower = this._end
+      upper = this._start
+    }
+  }
+  if (lower || upper) {
+    this._keyRange = this.options.keyRange || this.db.makeKeyRange({
+      lower: lower,
+      upper: upper
+      // TODO expose excludeUpper/excludeLower
+    })
+  }
+  this.iterator = this.db.iterate(this.onItem.bind(this), {
+    keyRange: this._keyRange,
+    autoContinue: false,
+    order: this._order,
+    onError: function(err) { console.log('horrible error', err) },
+  })
+}
+
+// TODO the limit implementation here just ignores all reads after limit has been reached
+// it should cancel the iterator instead but I don't know how
+Iterator.prototype.onItem = function (value, cursor, cursorTransaction) {
+  if (!cursor && this.callback) {
+    this.callback()
+    this.callback = false
+    return
+  }
+  if (this._limit && this._limit > 0) {
+    if (this._limit > this._count) this.callback(false, cursor.key, cursor.value)
+  } else {
+    this.callback(false, cursor.key, cursor.value)
+  }
+  if (this._limit) this._count++
+  if (cursor) cursor.continue()
+}
+
+Iterator.prototype._next = function (callback) {
+  if (!callback) return new Error('next() requires a callback argument')
+  if (!this._started) {
+    this.createIterator()
+    this._started = true
+  }
+  this.callback = callback
+}
+},{"util":6,"abstract-leveldown":17}],17:[function(require,module,exports){
+(function(process,Buffer){/* Copyright (c) 2013 Rod Vagg, MIT License */
+
+var AbstractIterator     = require('./abstract-iterator')
+  , AbstractChainedBatch = require('./abstract-chained-batch')
+
+function AbstractLevelDOWN (location) {
+  if (!arguments.length || location === undefined)
+    throw new Error('constructor requires at least a location argument')
+
+  if (typeof location != 'string')
+    throw new Error('constructor requires a location string argument')
+
+  this.location = location
+}
+
+AbstractLevelDOWN.prototype.open = function (options, callback) {
+  if (typeof options == 'function')
+    callback = options
+  if (typeof callback != 'function')
+    throw new Error('open() requires a callback argument')
+  if (typeof options != 'object')
+    options = {}
+
+  if (typeof this._open == 'function')
+    return this._open(options, callback)
+
+  process.nextTick(callback)
+}
+
+AbstractLevelDOWN.prototype.close = function (callback) {
+  if (typeof callback != 'function')
+    throw new Error('close() requires a callback argument')
+
+  if (typeof this._close == 'function')
+    return this._close(callback)
+
+  process.nextTick(callback)
+}
+
+AbstractLevelDOWN.prototype.get = function (key, options, callback) {
+  if (typeof options == 'function')
+    callback = options
+  if (typeof callback != 'function')
+    throw new Error('get() requires a callback argument')
+  var err = this._checkKeyValue(key, 'key', this._isBuffer)
+  if (err) return callback(err)
+  if (!this._isBuffer(key)) key = String(key)
+  if (typeof options != 'object')
+    options = {}
+
+  if (typeof this._get == 'function')
+    return this._get(key, options, callback)
+
+  process.nextTick(callback.bind(null, new Error('NotFound')))
+}
+
+AbstractLevelDOWN.prototype.put = function (key, value, options, callback) {
+  if (typeof options == 'function')
+    callback = options
+  if (typeof callback != 'function')
+    throw new Error('put() requires a callback argument')
+  var err = this._checkKeyValue(key, 'key', this._isBuffer)
+  if (err) return callback(err)
+  err = this._checkKeyValue(value, 'value', this._isBuffer)
+  if (err) return callback(err)
+  if (!this._isBuffer(key)) key = String(key)
+  // coerce value to string in node, dont touch it in browser
+  // (indexeddb can store any JS type)
+  if (!this._isBuffer(value) && !process.browser) value = String(value)
+  if (typeof options != 'object')
+    options = {}
+  if (typeof this._put == 'function')
+    return this._put(key, value, options, callback)
+
+  process.nextTick(callback)
+}
+
+AbstractLevelDOWN.prototype.del = function (key, options, callback) {
+  if (typeof options == 'function')
+    callback = options
+  if (typeof callback != 'function')
+    throw new Error('del() requires a callback argument')
+  var err = this._checkKeyValue(key, 'key', this._isBuffer)
+  if (err) return callback(err)
+  if (!this._isBuffer(key)) key = String(key)
+  if (typeof options != 'object')
+    options = {}
+
+
+  if (typeof this._del == 'function')
+    return this._del(key, options, callback)
+
+  process.nextTick(callback)
+}
+
+AbstractLevelDOWN.prototype.batch = function (array, options, callback) {
+  if (!arguments.length)
+    return this._chainedBatch()
+
+  if (typeof options == 'function')
+    callback = options
+  if (typeof callback != 'function')
+    throw new Error('batch(array) requires a callback argument')
+  if (!Array.isArray(array))
+    return callback(new Error('batch(array) requires an array argument'))
+  if (typeof options != 'object')
+    options = {}
+
+  var i = 0
+    , l = array.length
+    , e
+    , err
+
+  for (; i < l; i++) {
+    e = array[i]
+    if (typeof e != 'object') continue;
+
+    err = this._checkKeyValue(e.type, 'type', this._isBuffer)
+    if (err) return callback(err)
+
+    err = this._checkKeyValue(e.key, 'key', this._isBuffer)
+    if (err) return callback(err)
+
+    if (e.type == 'put') {
+      err = this._checkKeyValue(e.value, 'value', this._isBuffer)
+      if (err) return callback(err)
+    }
+  }
+
+  if (typeof this._batch == 'function')
+    return this._batch(array, options, callback)
+
+  process.nextTick(callback)
+}
+
+AbstractLevelDOWN.prototype.approximateSize = function (start, end, callback) {
+  if (start == null || end == null || typeof start == 'function' || typeof end == 'function')
+    throw new Error('approximateSize() requires valid `start`, `end` and `callback` arguments')
+  if (typeof callback != 'function')
+    throw new Error('approximateSize() requires a callback argument')
+
+  if (!this._isBuffer(start)) start = String(start)
+  if (!this._isBuffer(end)) end = String(end)
+  if (typeof this._approximateSize == 'function')
+    return this._approximateSize(start, end, callback)
+
+  process.nextTick(callback.bind(null, null, 0))
+}
+
+AbstractLevelDOWN.prototype.iterator = function (options) {
+  if (typeof options != 'object')
+    options = {}
+
+  if (typeof this._iterator == 'function')
+    return this._iterator(options)
+
+  return new AbstractIterator(this)
+}
+
+AbstractLevelDOWN.prototype._chainedBatch = function () {
+  return new AbstractChainedBatch(this)
+}
+
+AbstractLevelDOWN.prototype._isBuffer = function (obj) {
+  return Buffer.isBuffer(obj)
+}
+
+AbstractLevelDOWN.prototype._checkKeyValue = function (obj, type) {
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (this._isBuffer(obj)) {
+    if (obj.length === 0)
+      return new Error(type + ' cannot be an empty Buffer')
+  } else if (String(obj) === '')
+    return new Error(type + ' cannot be an empty String')
+}
+
+module.exports.AbstractLevelDOWN = AbstractLevelDOWN
+module.exports.AbstractIterator  = AbstractIterator
+})(require("__browserify_process"),require("__browserify_buffer").Buffer)
+},{"./abstract-iterator":25,"./abstract-chained-batch":26,"__browserify_process":7,"__browserify_buffer":14}],27:[function(require,module,exports){
 (function(){// UTILITY
 var util = require('util');
 var Buffer = require("buffer").Buffer;
@@ -7516,7 +7516,7 @@ assert.doesNotThrow = function(block, /*optional*/error, /*optional*/message) {
 assert.ifError = function(err) { if (err) {throw err;}};
 
 })()
-},{"util":6,"buffer":17}],25:[function(require,module,exports){
+},{"util":6,"buffer":24}],25:[function(require,module,exports){
 (function(process){/* Copyright (c) 2013 Rod Vagg, MIT License */
 
 function AbstractIterator (db) {
@@ -7566,7 +7566,7 @@ AbstractIterator.prototype.end = function (callback) {
 module.exports = AbstractIterator
 
 })(require("__browserify_process"))
-},{"__browserify_process":9}],26:[function(require,module,exports){
+},{"__browserify_process":7}],26:[function(require,module,exports){
 (function(process){/* Copyright (c) 2013 Rod Vagg, MIT License */
 
 function AbstractChainedBatch (db) {
@@ -7620,7 +7620,7 @@ AbstractChainedBatch.prototype.write = function (options, callback) {
 
 module.exports = AbstractChainedBatch
 })(require("__browserify_process"))
-},{"__browserify_process":9}],28:[function(require,module,exports){
+},{"__browserify_process":7}],28:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -7706,7 +7706,7 @@ exports.writeIEEE754 = function(buffer, value, offset, isBE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],17:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function(){function SlowBuffer (size) {
     this.length = size;
 };
@@ -9026,93 +9026,7 @@ SlowBuffer.prototype.writeDoubleLE = Buffer.prototype.writeDoubleLE;
 SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 
 })()
-},{"assert":27,"./buffer_ieee754":28,"base64-js":29}],29:[function(require,module,exports){
-(function (exports) {
-	'use strict';
-
-	var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-	function b64ToByteArray(b64) {
-		var i, j, l, tmp, placeHolders, arr;
-	
-		if (b64.length % 4 > 0) {
-			throw 'Invalid string. Length must be a multiple of 4';
-		}
-
-		// the number of equal signs (place holders)
-		// if there are two placeholders, than the two characters before it
-		// represent one byte
-		// if there is only one, then the three characters before it represent 2 bytes
-		// this is just a cheap hack to not do indexOf twice
-		placeHolders = b64.indexOf('=');
-		placeHolders = placeHolders > 0 ? b64.length - placeHolders : 0;
-
-		// base64 is 4/3 + up to two characters of the original data
-		arr = [];//new Uint8Array(b64.length * 3 / 4 - placeHolders);
-
-		// if there are placeholders, only get up to the last complete 4 chars
-		l = placeHolders > 0 ? b64.length - 4 : b64.length;
-
-		for (i = 0, j = 0; i < l; i += 4, j += 3) {
-			tmp = (lookup.indexOf(b64[i]) << 18) | (lookup.indexOf(b64[i + 1]) << 12) | (lookup.indexOf(b64[i + 2]) << 6) | lookup.indexOf(b64[i + 3]);
-			arr.push((tmp & 0xFF0000) >> 16);
-			arr.push((tmp & 0xFF00) >> 8);
-			arr.push(tmp & 0xFF);
-		}
-
-		if (placeHolders === 2) {
-			tmp = (lookup.indexOf(b64[i]) << 2) | (lookup.indexOf(b64[i + 1]) >> 4);
-			arr.push(tmp & 0xFF);
-		} else if (placeHolders === 1) {
-			tmp = (lookup.indexOf(b64[i]) << 10) | (lookup.indexOf(b64[i + 1]) << 4) | (lookup.indexOf(b64[i + 2]) >> 2);
-			arr.push((tmp >> 8) & 0xFF);
-			arr.push(tmp & 0xFF);
-		}
-
-		return arr;
-	}
-
-	function uint8ToBase64(uint8) {
-		var i,
-			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
-			output = "",
-			temp, length;
-
-		function tripletToBase64 (num) {
-			return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F];
-		};
-
-		// go through the array every three bytes, we'll deal with trailing stuff later
-		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2]);
-			output += tripletToBase64(temp);
-		}
-
-		// pad the end with zeros, but make sure to not forget the extra bytes
-		switch (extraBytes) {
-			case 1:
-				temp = uint8[uint8.length - 1];
-				output += lookup[temp >> 2];
-				output += lookup[(temp << 4) & 0x3F];
-				output += '==';
-				break;
-			case 2:
-				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1]);
-				output += lookup[temp >> 10];
-				output += lookup[(temp >> 4) & 0x3F];
-				output += lookup[(temp << 2) & 0x3F];
-				output += '=';
-				break;
-		}
-
-		return output;
-	}
-
-	module.exports.toByteArray = b64ToByteArray;
-	module.exports.fromByteArray = uint8ToBase64;
-}());
-
-},{}],23:[function(require,module,exports){
+},{"assert":27,"./buffer_ieee754":28,"base64-js":29}],22:[function(require,module,exports){
 (function(){var dataview = require('jDataView');
 
 // Generated by CoffeeScript 1.6.2
@@ -9569,7 +9483,93 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 })(module.exports);
 
 })()
-},{"jDataView":22}],21:[function(require,module,exports){
+},{"jDataView":21}],29:[function(require,module,exports){
+(function (exports) {
+	'use strict';
+
+	var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+	function b64ToByteArray(b64) {
+		var i, j, l, tmp, placeHolders, arr;
+	
+		if (b64.length % 4 > 0) {
+			throw 'Invalid string. Length must be a multiple of 4';
+		}
+
+		// the number of equal signs (place holders)
+		// if there are two placeholders, than the two characters before it
+		// represent one byte
+		// if there is only one, then the three characters before it represent 2 bytes
+		// this is just a cheap hack to not do indexOf twice
+		placeHolders = b64.indexOf('=');
+		placeHolders = placeHolders > 0 ? b64.length - placeHolders : 0;
+
+		// base64 is 4/3 + up to two characters of the original data
+		arr = [];//new Uint8Array(b64.length * 3 / 4 - placeHolders);
+
+		// if there are placeholders, only get up to the last complete 4 chars
+		l = placeHolders > 0 ? b64.length - 4 : b64.length;
+
+		for (i = 0, j = 0; i < l; i += 4, j += 3) {
+			tmp = (lookup.indexOf(b64[i]) << 18) | (lookup.indexOf(b64[i + 1]) << 12) | (lookup.indexOf(b64[i + 2]) << 6) | lookup.indexOf(b64[i + 3]);
+			arr.push((tmp & 0xFF0000) >> 16);
+			arr.push((tmp & 0xFF00) >> 8);
+			arr.push(tmp & 0xFF);
+		}
+
+		if (placeHolders === 2) {
+			tmp = (lookup.indexOf(b64[i]) << 2) | (lookup.indexOf(b64[i + 1]) >> 4);
+			arr.push(tmp & 0xFF);
+		} else if (placeHolders === 1) {
+			tmp = (lookup.indexOf(b64[i]) << 10) | (lookup.indexOf(b64[i + 1]) << 4) | (lookup.indexOf(b64[i + 2]) >> 2);
+			arr.push((tmp >> 8) & 0xFF);
+			arr.push(tmp & 0xFF);
+		}
+
+		return arr;
+	}
+
+	function uint8ToBase64(uint8) {
+		var i,
+			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
+			output = "",
+			temp, length;
+
+		function tripletToBase64 (num) {
+			return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F];
+		};
+
+		// go through the array every three bytes, we'll deal with trailing stuff later
+		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
+			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2]);
+			output += tripletToBase64(temp);
+		}
+
+		// pad the end with zeros, but make sure to not forget the extra bytes
+		switch (extraBytes) {
+			case 1:
+				temp = uint8[uint8.length - 1];
+				output += lookup[temp >> 2];
+				output += lookup[(temp << 4) & 0x3F];
+				output += '==';
+				break;
+			case 2:
+				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1]);
+				output += lookup[temp >> 10];
+				output += lookup[(temp >> 4) & 0x3F];
+				output += lookup[(temp << 2) & 0x3F];
+				output += '=';
+				break;
+		}
+
+		return output;
+	}
+
+	module.exports.toByteArray = b64ToByteArray;
+	module.exports.fromByteArray = uint8ToBase64;
+}());
+
+},{}],20:[function(require,module,exports){
 var blockInfo = require('minecraft-blockinfo')
 
 // Generated by CoffeeScript 1.6.2
@@ -9829,7 +9829,7 @@ module.exports.calcPoint = calcPoint;
 module.exports.typeToCoords = typeToCoords;
 
 
-},{"minecraft-blockinfo":30}],24:[function(require,module,exports){
+},{"minecraft-blockinfo":30}],23:[function(require,module,exports){
 var blockInfo = require('minecraft-blockinfo')
 
 // Generated by CoffeeScript 1.6.2
