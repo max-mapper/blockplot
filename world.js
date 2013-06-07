@@ -12,6 +12,18 @@ $(document)
 var container = $('.content')
 var title = $('.title')
 
+var hash = window.location.hash
+if (hash.length < 2) worldName = false
+else hash = hash.substr(1, hash.length - 1)
+
+var names = hash.split('/')
+if (names.length < 2) {
+  return document.location.href = "/"
+  worldName = false
+} else {
+  userName = names[0]
+  worldName = names[1]
+}
 
 level = voxelLevel('blocks', function ready() {
   if (hoodie.account.username) route()
@@ -24,6 +36,7 @@ function showImportPopup(e) {
 }
 
 function createNewWorld(e) {
+  voxelUtils.initGame({ worldName: userName + '/' + worldName, seed: 'foo' })
   e.preventDefault()
 }
 
@@ -31,17 +44,18 @@ function newWorld() {
   container.html($('.newWorld').html())
 }
 
-function loadWorld(user, id) {
+function loadWorld(user, id, seed) {
   // verify that there is world data to load
   var levelName = user + '/' + id
   var iter = level.db.iterator({ start: levelName, limit: 1 })
   iter.next(function (err, key, value) {
+    if (!err && !key && !value) return
     iter.end(function(){
       if (err || !key || key.indexOf(levelName) < 0 ) {
         newWorld()
         return
       }
-      voxelUtils.initGame({ worldName: levelName })
+      voxelUtils.initGame({ worldName: levelName, seed: seed })
     })
   })
 }
@@ -60,20 +74,7 @@ function notLoggedIn() {
 }
 
 function route() {
-  var hash = window.location.hash
-  if (hash.length < 2) worldName = false
-  else hash = hash.substr(1, hash.length - 1)
-
-  var names = hash.split('/')
-  if (names.length < 2) {
-    return document.location.href = "/"
-    worldName = false
-  } else {
-    userName = names[0]
-    worldName = names[1]
-  }
-
-  if (worldName) title.text(userName + '/' + worldName)
+  if (worldName) title.text(userName + ' / ' + worldName)
   loadWorld(userName, worldName)
 }
 
