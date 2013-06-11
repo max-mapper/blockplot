@@ -1162,7 +1162,7 @@ window = self
 console = {log: function(msg) { self.postMessage({log: msg}) }}
 
 function loadChunk(worldName, position, gameChunkSize, seed) {
-  if (seed && !generateChunk) generateChunk = terrain(seed)
+  if (seed && !generateChunk) generateChunk = terrain(seed, 0, 5, 60)
   var p = position
   var cs = gameChunkSize
   var dimensions = [cs, cs, cs]
@@ -1588,13 +1588,14 @@ module.exports = function(seed, floor, ceiling, divisor) {
     var chunk = new Int8Array(width * width * width)
     pointsInside(startX, startZ, width, function(x, z) {
       var n = noise.simplex2(x / divisor , z / divisor)
-      var y = ~~scale(n, -1, 1, floor, ceiling)
-      if (y === floor || startY < y && y < startY + width) {
+      var y = Math.ceil(scale(n, -1, 1, floor, ceiling))
+      if (startY < y && y < startY + width) {
+        var val = (y % 5) + 10
         var xidx = Math.abs((width + x % width) % width)
         var yidx = Math.abs((width + y % width) % width)
         var zidx = Math.abs((width + z % width) % width)
         var idx = xidx + yidx * width + zidx * width * width
-        chunk[idx] = 1
+        chunk[idx] = val
       }
     })
     return chunk
@@ -2358,7 +2359,7 @@ function StringToArrayBuffer(str) {
   return buf
 }
 
-},{"util":8,"./iterator":13,"abstract-leveldown":14,"isbuffer":15,"idb-wrapper":16}],15:[function(require,module,exports){
+},{"util":8,"./iterator":13,"isbuffer":14,"abstract-leveldown":15,"idb-wrapper":16}],14:[function(require,module,exports){
 (function(){var Buffer = require('buffer').Buffer;
 
 module.exports = isBuffer;
@@ -7430,7 +7431,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 },{}]},{},[])
 ;;module.exports=require("buffer-browserify")
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function(process,Buffer){/* Copyright (c) 2013 Rod Vagg, MIT License */
 
 var AbstractIterator     = require('./abstract-iterator')
@@ -7699,7 +7700,7 @@ Iterator.prototype._next = function (callback) {
   }
   this.callback = callback
 }
-},{"util":8,"abstract-leveldown":14}],21:[function(require,module,exports){
+},{"util":8,"abstract-leveldown":15}],21:[function(require,module,exports){
 (function(){// UTILITY
 var util = require('util');
 var Buffer = require("buffer").Buffer;

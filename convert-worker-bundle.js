@@ -44,7 +44,7 @@ self.onmessage = function(event) {
     convert(data, regionX, regionZ)
   }
 }
-},{"voxel-level":2,"mca2js":3}],4:[function(require,module,exports){
+},{"mca2js":2,"voxel-level":3}],4:[function(require,module,exports){
 var events = require('events');
 var util = require('util');
 
@@ -759,38 +759,6 @@ EventEmitter.prototype.listeners = function(type) {
 
 })(require("__browserify_process"))
 },{"__browserify_process":7}],2:[function(require,module,exports){
-var leveljs = require('level-js')
-var crunch = require('voxel-crunch')
-
-module.exports = VoxelLevel
-
-function VoxelLevel(game, readyCB) {
-  if (!(this instanceof VoxelLevel)) return new VoxelLevel(game, readyCB)
-  this.game = game
-  this.db = leveljs('blocks')
-  this.db.open(readyCB)
-}
-
-VoxelLevel.prototype.load = function(prefix, chunkPosition, dimensions, cb) {
-  var chunkLength = dimensions[0] * dimensions[1] * dimensions[2]
-  var chunkIndex = prefix + '|' + chunkPosition.join('|') + '|' + chunkLength
-  this.db.get(chunkIndex, function(err, rle) {
-    if (err) return cb(err)
-    var voxels = new Uint8Array(chunkLength)
-    crunch.decode(rle, voxels)
-    cb(false, {position: chunkPosition, voxels: voxels, dimensions: dimensions})
-  })
-}
-
-VoxelLevel.prototype.store = function(prefix, chunk, cb) {
-  var rle = crunch.encode(chunk.voxels)
-  var key = prefix + '|'
-  key += chunk.position.join('|')
-  key += '|' + chunk.voxels.length
-  this.db.put(key, rle, cb)
-}
-
-},{"level-js":8,"voxel-crunch":9}],3:[function(require,module,exports){
 var mcRegion = require('minecraft-region')
 var mca = require('minecraft-mca')
 var stream = require('stream')
@@ -875,102 +843,39 @@ MCA2JSON.prototype.convert = function(buf, regionX, regionZ) {
   self.emit('end')
 }
 
-},{"stream":4,"util":6,"minecraft-mca":10,"minecraft-region":11}],9:[function(require,module,exports){
-var bits = require("bit-twiddle")
+},{"stream":4,"util":6,"minecraft-mca":8,"minecraft-region":9}],3:[function(require,module,exports){
+var leveljs = require('level-js')
+var crunch = require('voxel-crunch')
 
-function size(chunk) {
-  var count = 0
-  var chunk_len = chunk.length
-  var i = 0, v, l
-  while(i<chunk.length) {
-    v = chunk[i]
-    l = 0
-    while(i < chunk_len && chunk[i] === v) {
-      ++i
-      ++l
-    }
-    count += (bits.log2(l) / 7)|0
-    count += (bits.log2(v>>>0) / 7)|0
-    count += 2
-  }
-  return count
+module.exports = VoxelLevel
+
+function VoxelLevel(game, readyCB) {
+  if (!(this instanceof VoxelLevel)) return new VoxelLevel(game, readyCB)
+  this.game = game
+  this.db = leveljs('blocks')
+  this.db.open(readyCB)
 }
-exports.size = size
 
-function encode(chunk, runs) {
-  if(!runs) {
-    runs = new Uint8Array(size(chunk))
-  }
-  var rptr = 0, nruns = runs.length
-  var i = 0, v, l
-  while(i<chunk.length) {
-    v = chunk[i]
-    l = 0
-    while(i < chunk.length && chunk[i] === v) {
-      ++i
-      ++l
-    }
-    while(rptr < nruns && l >= 128) {
-      runs[rptr++] = 128 + (l&0x7f)
-      l >>>= 7
-    }
-    if(rptr >= nruns) {
-      throw new Error("RLE buffer overflow")
-    }
-    runs[rptr++] = l
-    v >>>= 0
-    while(rptr < nruns && v >= 128) {
-      runs[rptr++] = 128 + (v&0x7f)
-      v >>>= 7
-    }
-    if(rptr >= nruns) {
-      throw new Error("RLE buffer overflow")
-    }
-    runs[rptr++] = v
-  }
-  return runs
+VoxelLevel.prototype.load = function(prefix, chunkPosition, dimensions, cb) {
+  var chunkLength = dimensions[0] * dimensions[1] * dimensions[2]
+  var chunkIndex = prefix + '|' + chunkPosition.join('|') + '|' + chunkLength
+  this.db.get(chunkIndex, function(err, rle) {
+    if (err) return cb(err)
+    var voxels = new Uint8Array(chunkLength)
+    crunch.decode(rle, voxels)
+    cb(false, {position: chunkPosition, voxels: voxels, dimensions: dimensions})
+  })
 }
-exports.encode = encode
 
-function decode(runs, chunk) {
-  var buf_len = chunk.length
-  var nruns = runs.length
-  var cptr = 0
-  var ptr = 0
-  var l, s, v, i
-  while(ptr < nruns) {
-    l = 0
-    s = 0
-    while(ptr < nruns && runs[ptr] >= 128) {
-      l += (runs[ptr++]&0x7f) << s
-      s += 7
-    }
-    l += runs[ptr++] << s
-    if(ptr >= nruns) {
-      throw new Error("RLE buffer underrun")
-    }
-    if(cptr + l > buf_len) {
-      throw new Error("Chunk buffer overflow")
-    }
-    v = 0
-    s = 0
-    while(ptr < nruns && runs[ptr] >= 128) {
-      v += (runs[ptr++]&0x7f) << s
-      s += 7
-    }
-    if(ptr >= nruns) {
-      throw new Error("RLE buffer underrun")
-    }
-    v += runs[ptr++] << s
-    for(i=0; i<l; ++i) {
-      chunk[cptr++] = v
-    }
-  }
-  return chunk
+VoxelLevel.prototype.store = function(prefix, chunk, cb) {
+  var rle = crunch.encode(chunk.voxels)
+  var key = prefix + '|'
+  key += chunk.position.join('|')
+  key += '|' + chunk.voxels.length
+  this.db.put(key, rle, cb)
 }
-exports.decode = decode
 
-},{"bit-twiddle":12}],13:[function(require,module,exports){
+},{"level-js":10,"voxel-crunch":11}],12:[function(require,module,exports){
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
 (function() {'use strict';var aa=this;function g(a,b,d){a=a.split(".");d=d||aa;!(a[0]in d)&&d.execScript&&d.execScript("var "+a[0]);for(var c;a.length&&(c=a.shift());)!a.length&&void 0!==b?d[c]=b:d=d[c]?d[c]:d[c]={}}Math.floor(2147483648*Math.random()).toString(36);var j="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;var ba=new (j?Uint8Array:Array)(256),l;for(l=0;256>l;++l){for(var ca=ba,da=l,n=l,o=n,q=7,n=n>>>1;n;n>>>=1)o<<=1,o|=n&1,--q;ca[da]=(o<<q&255)>>>0};var ea=[0,1996959894,3993919788,2567524794,124634137,1886057615,3915621685,2657392035,249268274,2044508324,3772115230,2547177864,162941995,2125561021,3887607047,2428444049,498536548,1789927666,4089016648,2227061214,450548861,1843258603,4107580753,2211677639,325883990,1684777152,4251122042,2321926636,335633487,1661365465,4195302755,2366115317,997073096,1281953886,3579855332,2724688242,1006888145,1258607687,3524101629,2768942443,901097722,1119000684,3686517206,2898065728,853044451,1172266101,3705015759,
 2882616665,651767980,1373503546,3369554304,3218104598,565507253,1454621731,3485111705,3099436303,671266974,1594198024,3322730930,2970347812,795835527,1483230225,3244367275,3060149565,1994146192,31158534,2563907772,4023717930,1907459465,112637215,2680153253,3904427059,2013776290,251722036,2517215374,3775830040,2137656763,141376813,2439277719,3865271297,1802195444,476864866,2238001368,4066508878,1812370925,453092731,2181625025,4111451223,1706088902,314042704,2344532202,4240017532,1658658271,366619977,
@@ -1001,7 +906,7 @@ U.prototype.m=function(){var a=this.input,b;b=this.s.m();this.a=this.s.a;if(this
 D.ADAPTIVE=D.u;D.BLOCK=D.v;g("Zlib.Inflate.prototype.decompress",U.prototype.m,void 0);var ja=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];j&&new Uint16Array(ja);var ka=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,258,258];j&&new Uint16Array(ka);var la=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0];j&&new Uint8Array(la);var ma=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];j&&new Uint16Array(ma);
 var na=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];j&&new Uint8Array(na);var W=new (j?Uint8Array:Array)(288),X,Y;X=0;for(Y=W.length;X<Y;++X)W[X]=143>=X?8:255>=X?9:279>=X?7:8;r(W);var Z=new (j?Uint8Array:Array)(30),$,oa;$=0;for(oa=Z.length;$<oa;++$)Z[$]=5;r(Z);var V=8;}).call(module.exports);
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 require=(function(e,t,n,r){function i(r){if(!n[r]){if(!t[r]){if(e)return e(r);throw new Error("Cannot find module '"+r+"'")}var s=n[r]={exports:{}};t[r][0](function(e){var n=t[r][1][e];return i(n?n:e)},s,s.exports)}return n[r].exports}for(var s=0;s<r.length;s++)i(r[s]);return i})(typeof require!=="undefined"&&require,{1:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
@@ -4866,7 +4771,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 },{}]},{},[])
 ;;module.exports=require("buffer-browserify")
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function(process,Buffer){/** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
 (function() {'use strict';function m(a){throw a;}var p=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function I(a,c){this.index="number"===typeof c?c:0;this.bitindex=0;this.buffer=a instanceof(A?Uint8Array:Array)?a:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&m(Error("invalid index"));this.buffer.length<=this.index&&this.expandBuffer()}I.prototype.expandBuffer=function(){var a=this.buffer,c,b=a.length,d=new (A?Uint8Array:Array)(b<<1);if(A)d.set(a);else for(c=0;c<b;++c)d[c]=a[c];return this.buffer=d};
 I.prototype.writeBits=function(a,c,b){var d=this.buffer,f=this.index,e=this.bitindex,g=d[f],h;b&&1<c&&(a=8<c?(K[a&255]<<24|K[a>>>8&255]<<16|K[a>>>16&255]<<8|K[a>>>24&255])>>32-c:K[a]>>8-c);if(8>c+e)g=g<<c|a,e+=c;else for(h=0;h<c;++h)g=g<<1|a>>c-h-1&1,8===++e&&(e=0,d[f++]=K[g],g=0,f===d.length&&(d=this.expandBuffer()));d[f]=g;this.buffer=d;this.bitindex=e;this.index=f};
@@ -4925,107 +4830,7 @@ function Hb(a,c){var b;a.subarray=a.slice;b=(new Db(a)).decompress();c||(c={});r
 function Mb(a){var c=new Buffer(a.length),b,d;b=0;for(d=a.length;b<d;++b)c[b]=a[b];return c};var Cb=8;}).call(this);
 
 })(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"__browserify_process":7,"__browserify_buffer":14}],8:[function(require,module,exports){
-module.exports = Level
-
-var IDB = require('idb-wrapper')
-var AbstractLevelDOWN = require('abstract-leveldown').AbstractLevelDOWN
-var util = require('util')
-var Iterator = require('./iterator')
-var isBuffer = require('isbuffer')
-
-function Level(location) {
-  if (!(this instanceof Level)) return new Level(location)
-  if (!location) throw new Error("constructor requires at least a location argument")
-  
-  this.location = location
-}
-
-util.inherits(Level, AbstractLevelDOWN)
-
-Level.prototype._open = function(options, callback) {
-  var self = this
-  
-  this.idb = new IDB({
-    storeName: this.location,
-    autoIncrement: false,
-    keyPath: null,
-    onStoreReady: function () {
-      callback && callback(null, self.idb)
-    }, 
-    onError: function(err) {
-      callback && callback(err)
-    }
-  })
-}
-
-Level.prototype._get = function (key, options, callback) {
-  this.idb.get(key, function (value) {
-    if (value === undefined) {
-      // 'NotFound' error, consistent with LevelDOWN API
-      return callback(new Error('NotFound'))
-    }
-    if (options.asBuffer !== false && !isBuffer(value))
-      value = StringToArrayBuffer(String(value))
-    return callback(null, value, key)
-  }, callback)
-}
-
-Level.prototype._del = function(id, options, callback) {
-  this.idb.remove(id, callback, callback)
-}
-
-Level.prototype._put = function (key, value, options, callback) {
-  this.idb.put(key, value, function() { callback() }, callback)
-}
-
-Level.prototype.iterator = function (options) {
-  if (typeof options !== 'object') options = {}
-  return new Iterator(this.idb, options)
-}
-
-Level.prototype._batch = function (array, options, callback) {
-  return this.idb.batch(array, function(){ callback() }, callback)
-}
-
-Level.prototype._close = function (callback) {
-  this.idb.db.close()
-  callback()
-}
-
-Level.prototype._approximateSize = function() {
-  throw new Error('Not implemented')
-}
-
-Level.prototype._isBuffer = isBuffer
-
-var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (obj === null || obj === undefined)
-    return new Error(type + ' cannot be `null` or `undefined`')
-  if (isBuffer(obj) && obj.byteLength === 0)
-    return new Error(type + ' cannot be an empty ArrayBuffer')
-  if (String(obj) === '')
-    return new Error(type + ' cannot be an empty String')
-  if (obj.length === 0)
-    return new Error(type + ' cannot be an empty Array')
-}
-
-function ArrayBufferToString(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf))
-}
-
-function StringToArrayBuffer(str) {
-  var buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
-  var bufView = new Uint16Array(buf)
-  for (var i = 0, strLen = str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i)
-  }
-  return buf
-}
-
-},{"util":6,"./iterator":16,"abstract-leveldown":17,"isbuffer":18,"idb-wrapper":19}],10:[function(require,module,exports){
+},{"__browserify_process":7,"__browserify_buffer":13}],8:[function(require,module,exports){
 var mcChunk = require('minecraft-chunk')
 
 module.exports = RegionRenderer
@@ -5111,7 +4916,7 @@ RegionRenderer.prototype.loadChunk = function(chunkX, chunkZ) {
     return false
   }
 }
-},{"minecraft-chunk":20}],11:[function(require,module,exports){
+},{"minecraft-chunk":15}],9:[function(require,module,exports){
 (function(process){var dataview = require('jDataView');
 var NBTReader = require('minecraft-nbt').NBTReader;
 var chunk = require('minecraft-chunk');
@@ -5224,7 +5029,701 @@ module.exports = function(data, x, z) {
 }
 
 })(require("__browserify_process"))
-},{"./zlib-inflate.min":13,"./zlibjs-node":15,"jDataView":21,"minecraft-nbt":22,"minecraft-chunk":23,"__browserify_process":7}],18:[function(require,module,exports){
+},{"./zlib-inflate.min":12,"./zlibjs-node":14,"jDataView":16,"minecraft-nbt":17,"minecraft-chunk":18,"__browserify_process":7}],11:[function(require,module,exports){
+var bits = require("bit-twiddle")
+
+function size(chunk) {
+  var count = 0
+  var chunk_len = chunk.length
+  var i = 0, v, l
+  while(i<chunk.length) {
+    v = chunk[i]
+    l = 0
+    while(i < chunk_len && chunk[i] === v) {
+      ++i
+      ++l
+    }
+    count += (bits.log2(l) / 7)|0
+    count += (bits.log2(v>>>0) / 7)|0
+    count += 2
+  }
+  return count
+}
+exports.size = size
+
+function encode(chunk, runs) {
+  if(!runs) {
+    runs = new Uint8Array(size(chunk))
+  }
+  var rptr = 0, nruns = runs.length
+  var i = 0, v, l
+  while(i<chunk.length) {
+    v = chunk[i]
+    l = 0
+    while(i < chunk.length && chunk[i] === v) {
+      ++i
+      ++l
+    }
+    while(rptr < nruns && l >= 128) {
+      runs[rptr++] = 128 + (l&0x7f)
+      l >>>= 7
+    }
+    if(rptr >= nruns) {
+      throw new Error("RLE buffer overflow")
+    }
+    runs[rptr++] = l
+    v >>>= 0
+    while(rptr < nruns && v >= 128) {
+      runs[rptr++] = 128 + (v&0x7f)
+      v >>>= 7
+    }
+    if(rptr >= nruns) {
+      throw new Error("RLE buffer overflow")
+    }
+    runs[rptr++] = v
+  }
+  return runs
+}
+exports.encode = encode
+
+function decode(runs, chunk) {
+  var buf_len = chunk.length
+  var nruns = runs.length
+  var cptr = 0
+  var ptr = 0
+  var l, s, v, i
+  while(ptr < nruns) {
+    l = 0
+    s = 0
+    while(ptr < nruns && runs[ptr] >= 128) {
+      l += (runs[ptr++]&0x7f) << s
+      s += 7
+    }
+    l += runs[ptr++] << s
+    if(ptr >= nruns) {
+      throw new Error("RLE buffer underrun")
+    }
+    if(cptr + l > buf_len) {
+      throw new Error("Chunk buffer overflow")
+    }
+    v = 0
+    s = 0
+    while(ptr < nruns && runs[ptr] >= 128) {
+      v += (runs[ptr++]&0x7f) << s
+      s += 7
+    }
+    if(ptr >= nruns) {
+      throw new Error("RLE buffer underrun")
+    }
+    v += runs[ptr++] << s
+    for(i=0; i<l; ++i) {
+      chunk[cptr++] = v
+    }
+  }
+  return chunk
+}
+exports.decode = decode
+
+},{"bit-twiddle":19}],10:[function(require,module,exports){
+module.exports = Level
+
+var IDB = require('idb-wrapper')
+var AbstractLevelDOWN = require('abstract-leveldown').AbstractLevelDOWN
+var util = require('util')
+var Iterator = require('./iterator')
+var isBuffer = require('isbuffer')
+
+function Level(location) {
+  if (!(this instanceof Level)) return new Level(location)
+  if (!location) throw new Error("constructor requires at least a location argument")
+  
+  this.location = location
+}
+
+util.inherits(Level, AbstractLevelDOWN)
+
+Level.prototype._open = function(options, callback) {
+  var self = this
+  
+  this.idb = new IDB({
+    storeName: this.location,
+    autoIncrement: false,
+    keyPath: null,
+    onStoreReady: function () {
+      callback && callback(null, self.idb)
+    }, 
+    onError: function(err) {
+      callback && callback(err)
+    }
+  })
+}
+
+Level.prototype._get = function (key, options, callback) {
+  this.idb.get(key, function (value) {
+    if (value === undefined) {
+      // 'NotFound' error, consistent with LevelDOWN API
+      return callback(new Error('NotFound'))
+    }
+    if (options.asBuffer !== false && !isBuffer(value))
+      value = StringToArrayBuffer(String(value))
+    return callback(null, value, key)
+  }, callback)
+}
+
+Level.prototype._del = function(id, options, callback) {
+  this.idb.remove(id, callback, callback)
+}
+
+Level.prototype._put = function (key, value, options, callback) {
+  this.idb.put(key, value, function() { callback() }, callback)
+}
+
+Level.prototype.iterator = function (options) {
+  if (typeof options !== 'object') options = {}
+  return new Iterator(this.idb, options)
+}
+
+Level.prototype._batch = function (array, options, callback) {
+  return this.idb.batch(array, function(){ callback() }, callback)
+}
+
+Level.prototype._close = function (callback) {
+  this.idb.db.close()
+  callback()
+}
+
+Level.prototype._approximateSize = function() {
+  throw new Error('Not implemented')
+}
+
+Level.prototype._isBuffer = isBuffer
+
+var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (obj === null || obj === undefined)
+    return new Error(type + ' cannot be `null` or `undefined`')
+  if (isBuffer(obj) && obj.byteLength === 0)
+    return new Error(type + ' cannot be an empty ArrayBuffer')
+  if (String(obj) === '')
+    return new Error(type + ' cannot be an empty String')
+  if (obj.length === 0)
+    return new Error(type + ' cannot be an empty Array')
+}
+
+function ArrayBufferToString(buf) {
+  return String.fromCharCode.apply(null, new Uint16Array(buf))
+}
+
+function StringToArrayBuffer(str) {
+  var buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
+  var bufView = new Uint16Array(buf)
+  for (var i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i)
+  }
+  return buf
+}
+
+},{"util":6,"./iterator":20,"abstract-leveldown":21,"isbuffer":22,"idb-wrapper":23}],16:[function(require,module,exports){
+(function(Buffer){//
+// jDataView by Vjeux - Jan 2010
+//
+// A unique way to read a binary file in the browser
+// http://github.com/vjeux/jDataView
+// http://blog.vjeux.com/ <vjeuxx@gmail.com>
+//
+
+(function (global) {
+
+var compatibility = {
+	ArrayBuffer: typeof ArrayBuffer !== 'undefined',
+	DataView: typeof DataView !== 'undefined' &&
+		('getFloat64' in DataView.prototype ||				// Chrome
+		 'getFloat64' in new DataView(new ArrayBuffer(1))), // Node
+	// NodeJS Buffer in v0.5.5 and newer
+	NodeBuffer: typeof Buffer !== 'undefined' && 'readInt16LE' in Buffer.prototype
+};
+
+var dataTypes = {
+	'Int8': 1,
+	'Int16': 2,
+	'Int32': 4,
+	'Uint8': 1,
+	'Uint16': 2,
+	'Uint32': 4,
+	'Float32': 4,
+	'Float64': 8
+};
+
+var nodeNaming = {
+	'Int8': 'Int8',
+	'Int16': 'Int16',
+	'Int32': 'Int32',
+	'Uint8': 'UInt8',
+	'Uint16': 'UInt16',
+	'Uint32': 'UInt32',
+	'Float32': 'Float',
+	'Float64': 'Double'
+};
+
+var jDataView = function (buffer, byteOffset, byteLength, littleEndian) {
+	if (!(this instanceof jDataView)) {
+		throw new Error("jDataView constructor may not be called as a function");
+	}
+
+	this.buffer = buffer;
+
+	// Handle Type Errors
+	if (!(compatibility.NodeBuffer && buffer instanceof Buffer) &&
+		!(compatibility.ArrayBuffer && buffer instanceof ArrayBuffer) &&
+		typeof buffer !== 'string') {
+		throw new TypeError('jDataView buffer has an incompatible type');
+	}
+
+	// Check parameters and existing functionnalities
+	this._isArrayBuffer = compatibility.ArrayBuffer && buffer instanceof ArrayBuffer;
+	this._isDataView = compatibility.DataView && this._isArrayBuffer;
+	this._isNodeBuffer = compatibility.NodeBuffer && buffer instanceof Buffer;
+
+	// Default Values
+	this._littleEndian = littleEndian === undefined ? false : littleEndian;
+
+	var bufferLength = this._isArrayBuffer ? buffer.byteLength : buffer.length;
+	if (byteOffset === undefined) {
+		byteOffset = 0;
+	}
+	this.byteOffset = byteOffset;
+
+	if (byteLength === undefined) {
+		byteLength = bufferLength - byteOffset;
+	}
+	this.byteLength = byteLength;
+
+	if (!this._isDataView) {
+		// Do additional checks to simulate DataView
+		if (typeof byteOffset !== 'number') {
+			throw new TypeError('jDataView byteOffset is not a number');
+		}
+		if (typeof byteLength !== 'number') {
+			throw new TypeError('jDataView byteLength is not a number');
+		}
+		if (byteOffset < 0) {
+			throw new Error('jDataView byteOffset is negative');
+		}
+		if (byteLength < 0) {
+			throw new Error('jDataView byteLength is negative');
+		}
+	}
+
+	// Instanciate
+	if (this._isDataView) {
+		this._view = new DataView(buffer, byteOffset, byteLength);
+		this._start = 0;
+	}
+	this._start = byteOffset;
+	if (byteOffset + byteLength > bufferLength) {
+		throw new Error("jDataView (byteOffset + byteLength) value is out of bounds");
+	}
+
+	this._offset = 0;
+
+	// Create uniform reading methods (wrappers) for the following data types
+
+	if (this._isDataView) { // DataView: we use the direct method
+		for (var type in dataTypes) {
+			if (!dataTypes.hasOwnProperty(type)) {
+				continue;
+			}
+			(function(type, view){
+				var size = dataTypes[type];
+				view['get' + type] = function (byteOffset, littleEndian) {
+					// Handle the lack of endianness
+					if (littleEndian === undefined) {
+						littleEndian = view._littleEndian;
+					}
+
+					// Handle the lack of byteOffset
+					if (byteOffset === undefined) {
+						byteOffset = view._offset;
+					}
+
+					// Move the internal offset forward
+					view._offset = byteOffset + size;
+
+					return view._view['get' + type](byteOffset, littleEndian);
+				}
+			})(type, this);
+		}
+	} else if (this._isNodeBuffer && compatibility.NodeBuffer) {
+		for (var type in dataTypes) {
+			if (!dataTypes.hasOwnProperty(type)) {
+				continue;
+			}
+
+			var name;
+			if (type === 'Int8' || type === 'Uint8') {
+				name = 'read' + nodeNaming[type];
+			} else if (littleEndian) {
+				name = 'read' + nodeNaming[type] + 'LE';
+			} else {
+				name = 'read' + nodeNaming[type] + 'BE';
+			}
+
+			(function(type, view, name){
+				var size = dataTypes[type];
+				view['get' + type] = function (byteOffset, littleEndian) {
+					// Handle the lack of endianness
+					if (littleEndian === undefined) {
+						littleEndian = view._littleEndian;
+					}
+
+					// Handle the lack of byteOffset
+					if (byteOffset === undefined) {
+						byteOffset = view._offset;
+					}
+
+					// Move the internal offset forward
+					view._offset = byteOffset + size;
+
+					return view.buffer[name](view._start + byteOffset);
+				}
+			})(type, this, name);
+		}
+	} else {
+		for (var type in dataTypes) {
+			if (!dataTypes.hasOwnProperty(type)) {
+				continue;
+			}
+			(function(type, view){
+				var size = dataTypes[type];
+				view['get' + type] = function (byteOffset, littleEndian) {
+					// Handle the lack of endianness
+					if (littleEndian === undefined) {
+						littleEndian = view._littleEndian;
+					}
+
+					// Handle the lack of byteOffset
+					if (byteOffset === undefined) {
+						byteOffset = view._offset;
+					}
+
+					// Move the internal offset forward
+					view._offset = byteOffset + size;
+
+					if (view._isArrayBuffer && (view._start + byteOffset) % size === 0 && (size === 1 || littleEndian)) {
+						// ArrayBuffer: we use a typed array of size 1 if the alignment is good
+						// ArrayBuffer does not support endianess flag (for size > 1)
+						return new global[type + 'Array'](view.buffer, view._start + byteOffset, 1)[0];
+					} else {
+						// Error checking:
+						if (typeof byteOffset !== 'number') {
+							throw new TypeError('jDataView byteOffset is not a number');
+						}
+						if (byteOffset + size > view.byteLength) {
+							throw new Error('jDataView (byteOffset + size) value is out of bounds');
+						}
+
+						return view['_get' + type](view._start + byteOffset, littleEndian);
+					}
+				}
+			})(type, this);
+		}
+	}
+};
+
+if (compatibility.NodeBuffer) {
+	jDataView.createBuffer = function () {
+		var buffer = new Buffer(arguments.length);
+		for (var i = 0; i < arguments.length; ++i) {
+			buffer[i] = arguments[i];
+		}
+		return buffer;
+	}
+} else if (compatibility.ArrayBuffer) {
+	jDataView.createBuffer = function () {
+		var buffer = new ArrayBuffer(arguments.length);
+		var view = new Int8Array(buffer);
+		for (var i = 0; i < arguments.length; ++i) {
+			view[i] = arguments[i];
+		}
+		return buffer;
+	}
+} else {
+	jDataView.createBuffer = function () {
+		return String.fromCharCode.apply(null, arguments);
+	}
+}
+
+jDataView.prototype = {
+	compatibility: compatibility,
+
+	// Helpers
+
+	getString: function (length, byteOffset) {
+		var value;
+
+		// Handle the lack of byteOffset
+		if (byteOffset === undefined) {
+			byteOffset = this._offset;
+		}
+
+		// Error Checking
+		if (typeof byteOffset !== 'number') {
+			throw new TypeError('jDataView byteOffset is not a number');
+		}
+		if (length < 0 || byteOffset + length > this.byteLength) {
+			throw new Error('jDataView length or (byteOffset+length) value is out of bounds');
+		}
+
+		if (this._isNodeBuffer) {
+			value = this.buffer.toString('ascii', this._start + byteOffset, this._start + byteOffset + length);
+		}
+		else {
+			value = '';
+			for (var i = 0; i < length; ++i) {
+				var char = this.getUint8(byteOffset + i);
+				value += String.fromCharCode(char > 127 ? 65533 : char);
+			}
+		}
+
+		this._offset = byteOffset + length;
+		return value;
+	},
+
+	getChar: function (byteOffset) {
+		return this.getString(1, byteOffset);
+	},
+
+	tell: function () {
+		return this._offset;
+	},
+
+	seek: function (byteOffset) {
+		if (typeof byteOffset !== 'number') {
+			throw new TypeError('jDataView byteOffset is not a number');
+		}
+		if (byteOffset < 0 || byteOffset > this.byteLength) {
+			throw new Error('jDataView byteOffset value is out of bounds');
+		}
+
+		return this._offset = byteOffset;
+	},
+
+	// Compatibility functions on a String Buffer
+
+	_endianness: function (byteOffset, pos, max, littleEndian) {
+		return byteOffset + (littleEndian ? max - pos - 1 : pos);
+	},
+
+	_getFloat64: function (byteOffset, littleEndian) {
+		var b0 = this._getUint8(this._endianness(byteOffset, 0, 8, littleEndian)),
+			b1 = this._getUint8(this._endianness(byteOffset, 1, 8, littleEndian)),
+			b2 = this._getUint8(this._endianness(byteOffset, 2, 8, littleEndian)),
+			b3 = this._getUint8(this._endianness(byteOffset, 3, 8, littleEndian)),
+			b4 = this._getUint8(this._endianness(byteOffset, 4, 8, littleEndian)),
+			b5 = this._getUint8(this._endianness(byteOffset, 5, 8, littleEndian)),
+			b6 = this._getUint8(this._endianness(byteOffset, 6, 8, littleEndian)),
+			b7 = this._getUint8(this._endianness(byteOffset, 7, 8, littleEndian)),
+
+			sign = 1 - (2 * (b0 >> 7)),
+			exponent = ((((b0 << 1) & 0xff) << 3) | (b1 >> 4)) - (Math.pow(2, 10) - 1),
+
+		// Binary operators such as | and << operate on 32 bit values, using + and Math.pow(2) instead
+			mantissa = ((b1 & 0x0f) * Math.pow(2, 48)) + (b2 * Math.pow(2, 40)) + (b3 * Math.pow(2, 32)) +
+						(b4 * Math.pow(2, 24)) + (b5 * Math.pow(2, 16)) + (b6 * Math.pow(2, 8)) + b7;
+
+		if (exponent === 1024) {
+			if (mantissa !== 0) {
+				return NaN;
+			} else {
+				return sign * Infinity;
+			}
+		}
+
+		if (exponent === -1023) { // Denormalized
+			return sign * mantissa * Math.pow(2, -1022 - 52);
+		}
+
+		return sign * (1 + mantissa * Math.pow(2, -52)) * Math.pow(2, exponent);
+	},
+
+	_getFloat32: function (byteOffset, littleEndian) {
+		var b0 = this._getUint8(this._endianness(byteOffset, 0, 4, littleEndian)),
+			b1 = this._getUint8(this._endianness(byteOffset, 1, 4, littleEndian)),
+			b2 = this._getUint8(this._endianness(byteOffset, 2, 4, littleEndian)),
+			b3 = this._getUint8(this._endianness(byteOffset, 3, 4, littleEndian)),
+
+			sign = 1 - (2 * (b0 >> 7)),
+			exponent = (((b0 << 1) & 0xff) | (b1 >> 7)) - 127,
+			mantissa = ((b1 & 0x7f) << 16) | (b2 << 8) | b3;
+
+		if (exponent === 128) {
+			if (mantissa !== 0) {
+				return NaN;
+			} else {
+				return sign * Infinity;
+			}
+		}
+
+		if (exponent === -127) { // Denormalized
+			return sign * mantissa * Math.pow(2, -126 - 23);
+		}
+
+		return sign * (1 + mantissa * Math.pow(2, -23)) * Math.pow(2, exponent);
+	},
+
+	_getInt32: function (byteOffset, littleEndian) {
+		var b = this._getUint32(byteOffset, littleEndian);
+		return b > Math.pow(2, 31) - 1 ? b - Math.pow(2, 32) : b;
+	},
+
+	_getUint32: function (byteOffset, littleEndian) {
+		var b3 = this._getUint8(this._endianness(byteOffset, 0, 4, littleEndian)),
+			b2 = this._getUint8(this._endianness(byteOffset, 1, 4, littleEndian)),
+			b1 = this._getUint8(this._endianness(byteOffset, 2, 4, littleEndian)),
+			b0 = this._getUint8(this._endianness(byteOffset, 3, 4, littleEndian));
+
+		return (b3 * Math.pow(2, 24)) + (b2 << 16) + (b1 << 8) + b0;
+	},
+
+	_getInt16: function (byteOffset, littleEndian) {
+		var b = this._getUint16(byteOffset, littleEndian);
+		return b > Math.pow(2, 15) - 1 ? b - Math.pow(2, 16) : b;
+	},
+
+	_getUint16: function (byteOffset, littleEndian) {
+		var b1 = this._getUint8(this._endianness(byteOffset, 0, 2, littleEndian)),
+			b0 = this._getUint8(this._endianness(byteOffset, 1, 2, littleEndian));
+
+		return (b1 << 8) + b0;
+	},
+
+	_getInt8: function (byteOffset) {
+		var b = this._getUint8(byteOffset);
+		return b > Math.pow(2, 7) - 1 ? b - Math.pow(2, 8) : b;
+	},
+
+	_getUint8: function (byteOffset) {
+		if (this._isArrayBuffer) {
+			return new Uint8Array(this.buffer, byteOffset, 1)[0];
+		}
+		else if (this._isNodeBuffer) {
+			return this.buffer[byteOffset];
+		} else {
+			return this.buffer.charCodeAt(byteOffset) & 0xff;
+		}
+	}
+};
+
+if (typeof jQuery !== 'undefined' && jQuery.fn.jquery >= "1.6.2") {
+	var convertResponseBodyToText = function (byteArray) {
+		// http://jsperf.com/vbscript-binary-download/6
+		var scrambledStr;
+		try {
+			scrambledStr = IEBinaryToArray_ByteStr(byteArray);
+		} catch (e) {
+			// http://stackoverflow.com/questions/1919972/how-do-i-access-xhr-responsebody-for-binary-data-from-javascript-in-ie
+			// http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/
+			var IEBinaryToArray_ByteStr_Script =
+				"Function IEBinaryToArray_ByteStr(Binary)\r\n"+
+				"	IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
+				"End Function\r\n"+
+				"Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
+				"	Dim lastIndex\r\n"+
+				"	lastIndex = LenB(Binary)\r\n"+
+				"	if lastIndex mod 2 Then\r\n"+
+				"		IEBinaryToArray_ByteStr_Last = AscB( MidB( Binary, lastIndex, 1 ) )\r\n"+
+				"	Else\r\n"+
+				"		IEBinaryToArray_ByteStr_Last = -1\r\n"+
+				"	End If\r\n"+
+				"End Function\r\n";
+
+			// http://msdn.microsoft.com/en-us/library/ms536420(v=vs.85).aspx
+			// proprietary IE function
+			window.execScript(IEBinaryToArray_ByteStr_Script, 'vbscript');
+
+			scrambledStr = IEBinaryToArray_ByteStr(byteArray);
+		}
+
+		var lastChr = IEBinaryToArray_ByteStr_Last(byteArray),
+		result = "",
+		i = 0,
+		l = scrambledStr.length % 8,
+		thischar;
+		while (i < l) {
+			thischar = scrambledStr.charCodeAt(i++);
+			result += String.fromCharCode(thischar & 0xff, thischar >> 8);
+		}
+		l = scrambledStr.length
+		while (i < l) {
+			result += String.fromCharCode(
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
+				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8);
+		}
+		if (lastChr > -1) {
+			result += String.fromCharCode(lastChr);
+		}
+		return result;
+	};
+
+	jQuery.ajaxSetup({
+		converters: {
+			'* dataview': function(data) {
+				return new jDataView(data);
+			}
+		},
+		accepts: {
+			dataview: "text/plain; charset=x-user-defined"
+		},
+		responseHandler: {
+			dataview: function (responses, options, xhr) {
+				// Array Buffer Firefox
+				if ('mozResponseArrayBuffer' in xhr) {
+					responses.text = xhr.mozResponseArrayBuffer;
+				}
+				// Array Buffer Chrome
+				else if ('responseType' in xhr && xhr.responseType === 'arraybuffer' && xhr.response) {
+					responses.text = xhr.response;
+				}
+				// Internet Explorer (Byte array accessible through VBScript -- convert to text)
+				else if ('responseBody' in xhr) {
+					responses.text = convertResponseBodyToText(xhr.responseBody);
+				}
+				// Older Browsers
+				else {
+					responses.text = xhr.responseText;
+				}
+			}
+		}
+	});
+
+	jQuery.ajaxPrefilter('dataview', function(options, originalOptions, jqXHR) {
+		// trying to set the responseType on IE 6 causes an error
+		if (jQuery.support.ajaxResponseType) {
+			if (!options.hasOwnProperty('xhrFields')) {
+				options.xhrFields = {};
+			}
+			options.xhrFields.responseType = 'arraybuffer';
+		}
+		options.mimeType = 'text/plain; charset=x-user-defined';
+	});
+}
+
+global.jDataView = (global.module || {}).exports = jDataView;
+if (typeof module !== 'undefined') {
+	module.exports = jDataView;
+}
+
+})(this);
+
+})(require("__browserify_buffer").Buffer)
+},{"__browserify_buffer":13}],22:[function(require,module,exports){
 (function(){var Buffer = require('buffer').Buffer;
 
 module.exports = isBuffer;
@@ -5235,7 +5734,7 @@ function isBuffer (o) {
 }
 
 })()
-},{"buffer":24}],12:[function(require,module,exports){
+},{"buffer":24}],19:[function(require,module,exports){
 /**
  * Bit twiddling hacks for JavaScript.
  *
@@ -5441,7 +5940,7 @@ exports.nextCombination = function(v) {
 }
 
 
-},{}],19:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function(){/*jshint expr:true */
 /*global window:false, console:false, define:false, module:false */
 
@@ -6432,591 +6931,6 @@ exports.nextCombination = function(v) {
 
 })()
 },{}],21:[function(require,module,exports){
-(function(Buffer){//
-// jDataView by Vjeux - Jan 2010
-//
-// A unique way to read a binary file in the browser
-// http://github.com/vjeux/jDataView
-// http://blog.vjeux.com/ <vjeuxx@gmail.com>
-//
-
-(function (global) {
-
-var compatibility = {
-	ArrayBuffer: typeof ArrayBuffer !== 'undefined',
-	DataView: typeof DataView !== 'undefined' &&
-		('getFloat64' in DataView.prototype ||				// Chrome
-		 'getFloat64' in new DataView(new ArrayBuffer(1))), // Node
-	// NodeJS Buffer in v0.5.5 and newer
-	NodeBuffer: typeof Buffer !== 'undefined' && 'readInt16LE' in Buffer.prototype
-};
-
-var dataTypes = {
-	'Int8': 1,
-	'Int16': 2,
-	'Int32': 4,
-	'Uint8': 1,
-	'Uint16': 2,
-	'Uint32': 4,
-	'Float32': 4,
-	'Float64': 8
-};
-
-var nodeNaming = {
-	'Int8': 'Int8',
-	'Int16': 'Int16',
-	'Int32': 'Int32',
-	'Uint8': 'UInt8',
-	'Uint16': 'UInt16',
-	'Uint32': 'UInt32',
-	'Float32': 'Float',
-	'Float64': 'Double'
-};
-
-var jDataView = function (buffer, byteOffset, byteLength, littleEndian) {
-	if (!(this instanceof jDataView)) {
-		throw new Error("jDataView constructor may not be called as a function");
-	}
-
-	this.buffer = buffer;
-
-	// Handle Type Errors
-	if (!(compatibility.NodeBuffer && buffer instanceof Buffer) &&
-		!(compatibility.ArrayBuffer && buffer instanceof ArrayBuffer) &&
-		typeof buffer !== 'string') {
-		throw new TypeError('jDataView buffer has an incompatible type');
-	}
-
-	// Check parameters and existing functionnalities
-	this._isArrayBuffer = compatibility.ArrayBuffer && buffer instanceof ArrayBuffer;
-	this._isDataView = compatibility.DataView && this._isArrayBuffer;
-	this._isNodeBuffer = compatibility.NodeBuffer && buffer instanceof Buffer;
-
-	// Default Values
-	this._littleEndian = littleEndian === undefined ? false : littleEndian;
-
-	var bufferLength = this._isArrayBuffer ? buffer.byteLength : buffer.length;
-	if (byteOffset === undefined) {
-		byteOffset = 0;
-	}
-	this.byteOffset = byteOffset;
-
-	if (byteLength === undefined) {
-		byteLength = bufferLength - byteOffset;
-	}
-	this.byteLength = byteLength;
-
-	if (!this._isDataView) {
-		// Do additional checks to simulate DataView
-		if (typeof byteOffset !== 'number') {
-			throw new TypeError('jDataView byteOffset is not a number');
-		}
-		if (typeof byteLength !== 'number') {
-			throw new TypeError('jDataView byteLength is not a number');
-		}
-		if (byteOffset < 0) {
-			throw new Error('jDataView byteOffset is negative');
-		}
-		if (byteLength < 0) {
-			throw new Error('jDataView byteLength is negative');
-		}
-	}
-
-	// Instanciate
-	if (this._isDataView) {
-		this._view = new DataView(buffer, byteOffset, byteLength);
-		this._start = 0;
-	}
-	this._start = byteOffset;
-	if (byteOffset + byteLength > bufferLength) {
-		throw new Error("jDataView (byteOffset + byteLength) value is out of bounds");
-	}
-
-	this._offset = 0;
-
-	// Create uniform reading methods (wrappers) for the following data types
-
-	if (this._isDataView) { // DataView: we use the direct method
-		for (var type in dataTypes) {
-			if (!dataTypes.hasOwnProperty(type)) {
-				continue;
-			}
-			(function(type, view){
-				var size = dataTypes[type];
-				view['get' + type] = function (byteOffset, littleEndian) {
-					// Handle the lack of endianness
-					if (littleEndian === undefined) {
-						littleEndian = view._littleEndian;
-					}
-
-					// Handle the lack of byteOffset
-					if (byteOffset === undefined) {
-						byteOffset = view._offset;
-					}
-
-					// Move the internal offset forward
-					view._offset = byteOffset + size;
-
-					return view._view['get' + type](byteOffset, littleEndian);
-				}
-			})(type, this);
-		}
-	} else if (this._isNodeBuffer && compatibility.NodeBuffer) {
-		for (var type in dataTypes) {
-			if (!dataTypes.hasOwnProperty(type)) {
-				continue;
-			}
-
-			var name;
-			if (type === 'Int8' || type === 'Uint8') {
-				name = 'read' + nodeNaming[type];
-			} else if (littleEndian) {
-				name = 'read' + nodeNaming[type] + 'LE';
-			} else {
-				name = 'read' + nodeNaming[type] + 'BE';
-			}
-
-			(function(type, view, name){
-				var size = dataTypes[type];
-				view['get' + type] = function (byteOffset, littleEndian) {
-					// Handle the lack of endianness
-					if (littleEndian === undefined) {
-						littleEndian = view._littleEndian;
-					}
-
-					// Handle the lack of byteOffset
-					if (byteOffset === undefined) {
-						byteOffset = view._offset;
-					}
-
-					// Move the internal offset forward
-					view._offset = byteOffset + size;
-
-					return view.buffer[name](view._start + byteOffset);
-				}
-			})(type, this, name);
-		}
-	} else {
-		for (var type in dataTypes) {
-			if (!dataTypes.hasOwnProperty(type)) {
-				continue;
-			}
-			(function(type, view){
-				var size = dataTypes[type];
-				view['get' + type] = function (byteOffset, littleEndian) {
-					// Handle the lack of endianness
-					if (littleEndian === undefined) {
-						littleEndian = view._littleEndian;
-					}
-
-					// Handle the lack of byteOffset
-					if (byteOffset === undefined) {
-						byteOffset = view._offset;
-					}
-
-					// Move the internal offset forward
-					view._offset = byteOffset + size;
-
-					if (view._isArrayBuffer && (view._start + byteOffset) % size === 0 && (size === 1 || littleEndian)) {
-						// ArrayBuffer: we use a typed array of size 1 if the alignment is good
-						// ArrayBuffer does not support endianess flag (for size > 1)
-						return new global[type + 'Array'](view.buffer, view._start + byteOffset, 1)[0];
-					} else {
-						// Error checking:
-						if (typeof byteOffset !== 'number') {
-							throw new TypeError('jDataView byteOffset is not a number');
-						}
-						if (byteOffset + size > view.byteLength) {
-							throw new Error('jDataView (byteOffset + size) value is out of bounds');
-						}
-
-						return view['_get' + type](view._start + byteOffset, littleEndian);
-					}
-				}
-			})(type, this);
-		}
-	}
-};
-
-if (compatibility.NodeBuffer) {
-	jDataView.createBuffer = function () {
-		var buffer = new Buffer(arguments.length);
-		for (var i = 0; i < arguments.length; ++i) {
-			buffer[i] = arguments[i];
-		}
-		return buffer;
-	}
-} else if (compatibility.ArrayBuffer) {
-	jDataView.createBuffer = function () {
-		var buffer = new ArrayBuffer(arguments.length);
-		var view = new Int8Array(buffer);
-		for (var i = 0; i < arguments.length; ++i) {
-			view[i] = arguments[i];
-		}
-		return buffer;
-	}
-} else {
-	jDataView.createBuffer = function () {
-		return String.fromCharCode.apply(null, arguments);
-	}
-}
-
-jDataView.prototype = {
-	compatibility: compatibility,
-
-	// Helpers
-
-	getString: function (length, byteOffset) {
-		var value;
-
-		// Handle the lack of byteOffset
-		if (byteOffset === undefined) {
-			byteOffset = this._offset;
-		}
-
-		// Error Checking
-		if (typeof byteOffset !== 'number') {
-			throw new TypeError('jDataView byteOffset is not a number');
-		}
-		if (length < 0 || byteOffset + length > this.byteLength) {
-			throw new Error('jDataView length or (byteOffset+length) value is out of bounds');
-		}
-
-		if (this._isNodeBuffer) {
-			value = this.buffer.toString('ascii', this._start + byteOffset, this._start + byteOffset + length);
-		}
-		else {
-			value = '';
-			for (var i = 0; i < length; ++i) {
-				var char = this.getUint8(byteOffset + i);
-				value += String.fromCharCode(char > 127 ? 65533 : char);
-			}
-		}
-
-		this._offset = byteOffset + length;
-		return value;
-	},
-
-	getChar: function (byteOffset) {
-		return this.getString(1, byteOffset);
-	},
-
-	tell: function () {
-		return this._offset;
-	},
-
-	seek: function (byteOffset) {
-		if (typeof byteOffset !== 'number') {
-			throw new TypeError('jDataView byteOffset is not a number');
-		}
-		if (byteOffset < 0 || byteOffset > this.byteLength) {
-			throw new Error('jDataView byteOffset value is out of bounds');
-		}
-
-		return this._offset = byteOffset;
-	},
-
-	// Compatibility functions on a String Buffer
-
-	_endianness: function (byteOffset, pos, max, littleEndian) {
-		return byteOffset + (littleEndian ? max - pos - 1 : pos);
-	},
-
-	_getFloat64: function (byteOffset, littleEndian) {
-		var b0 = this._getUint8(this._endianness(byteOffset, 0, 8, littleEndian)),
-			b1 = this._getUint8(this._endianness(byteOffset, 1, 8, littleEndian)),
-			b2 = this._getUint8(this._endianness(byteOffset, 2, 8, littleEndian)),
-			b3 = this._getUint8(this._endianness(byteOffset, 3, 8, littleEndian)),
-			b4 = this._getUint8(this._endianness(byteOffset, 4, 8, littleEndian)),
-			b5 = this._getUint8(this._endianness(byteOffset, 5, 8, littleEndian)),
-			b6 = this._getUint8(this._endianness(byteOffset, 6, 8, littleEndian)),
-			b7 = this._getUint8(this._endianness(byteOffset, 7, 8, littleEndian)),
-
-			sign = 1 - (2 * (b0 >> 7)),
-			exponent = ((((b0 << 1) & 0xff) << 3) | (b1 >> 4)) - (Math.pow(2, 10) - 1),
-
-		// Binary operators such as | and << operate on 32 bit values, using + and Math.pow(2) instead
-			mantissa = ((b1 & 0x0f) * Math.pow(2, 48)) + (b2 * Math.pow(2, 40)) + (b3 * Math.pow(2, 32)) +
-						(b4 * Math.pow(2, 24)) + (b5 * Math.pow(2, 16)) + (b6 * Math.pow(2, 8)) + b7;
-
-		if (exponent === 1024) {
-			if (mantissa !== 0) {
-				return NaN;
-			} else {
-				return sign * Infinity;
-			}
-		}
-
-		if (exponent === -1023) { // Denormalized
-			return sign * mantissa * Math.pow(2, -1022 - 52);
-		}
-
-		return sign * (1 + mantissa * Math.pow(2, -52)) * Math.pow(2, exponent);
-	},
-
-	_getFloat32: function (byteOffset, littleEndian) {
-		var b0 = this._getUint8(this._endianness(byteOffset, 0, 4, littleEndian)),
-			b1 = this._getUint8(this._endianness(byteOffset, 1, 4, littleEndian)),
-			b2 = this._getUint8(this._endianness(byteOffset, 2, 4, littleEndian)),
-			b3 = this._getUint8(this._endianness(byteOffset, 3, 4, littleEndian)),
-
-			sign = 1 - (2 * (b0 >> 7)),
-			exponent = (((b0 << 1) & 0xff) | (b1 >> 7)) - 127,
-			mantissa = ((b1 & 0x7f) << 16) | (b2 << 8) | b3;
-
-		if (exponent === 128) {
-			if (mantissa !== 0) {
-				return NaN;
-			} else {
-				return sign * Infinity;
-			}
-		}
-
-		if (exponent === -127) { // Denormalized
-			return sign * mantissa * Math.pow(2, -126 - 23);
-		}
-
-		return sign * (1 + mantissa * Math.pow(2, -23)) * Math.pow(2, exponent);
-	},
-
-	_getInt32: function (byteOffset, littleEndian) {
-		var b = this._getUint32(byteOffset, littleEndian);
-		return b > Math.pow(2, 31) - 1 ? b - Math.pow(2, 32) : b;
-	},
-
-	_getUint32: function (byteOffset, littleEndian) {
-		var b3 = this._getUint8(this._endianness(byteOffset, 0, 4, littleEndian)),
-			b2 = this._getUint8(this._endianness(byteOffset, 1, 4, littleEndian)),
-			b1 = this._getUint8(this._endianness(byteOffset, 2, 4, littleEndian)),
-			b0 = this._getUint8(this._endianness(byteOffset, 3, 4, littleEndian));
-
-		return (b3 * Math.pow(2, 24)) + (b2 << 16) + (b1 << 8) + b0;
-	},
-
-	_getInt16: function (byteOffset, littleEndian) {
-		var b = this._getUint16(byteOffset, littleEndian);
-		return b > Math.pow(2, 15) - 1 ? b - Math.pow(2, 16) : b;
-	},
-
-	_getUint16: function (byteOffset, littleEndian) {
-		var b1 = this._getUint8(this._endianness(byteOffset, 0, 2, littleEndian)),
-			b0 = this._getUint8(this._endianness(byteOffset, 1, 2, littleEndian));
-
-		return (b1 << 8) + b0;
-	},
-
-	_getInt8: function (byteOffset) {
-		var b = this._getUint8(byteOffset);
-		return b > Math.pow(2, 7) - 1 ? b - Math.pow(2, 8) : b;
-	},
-
-	_getUint8: function (byteOffset) {
-		if (this._isArrayBuffer) {
-			return new Uint8Array(this.buffer, byteOffset, 1)[0];
-		}
-		else if (this._isNodeBuffer) {
-			return this.buffer[byteOffset];
-		} else {
-			return this.buffer.charCodeAt(byteOffset) & 0xff;
-		}
-	}
-};
-
-if (typeof jQuery !== 'undefined' && jQuery.fn.jquery >= "1.6.2") {
-	var convertResponseBodyToText = function (byteArray) {
-		// http://jsperf.com/vbscript-binary-download/6
-		var scrambledStr;
-		try {
-			scrambledStr = IEBinaryToArray_ByteStr(byteArray);
-		} catch (e) {
-			// http://stackoverflow.com/questions/1919972/how-do-i-access-xhr-responsebody-for-binary-data-from-javascript-in-ie
-			// http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/
-			var IEBinaryToArray_ByteStr_Script =
-				"Function IEBinaryToArray_ByteStr(Binary)\r\n"+
-				"	IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
-				"End Function\r\n"+
-				"Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
-				"	Dim lastIndex\r\n"+
-				"	lastIndex = LenB(Binary)\r\n"+
-				"	if lastIndex mod 2 Then\r\n"+
-				"		IEBinaryToArray_ByteStr_Last = AscB( MidB( Binary, lastIndex, 1 ) )\r\n"+
-				"	Else\r\n"+
-				"		IEBinaryToArray_ByteStr_Last = -1\r\n"+
-				"	End If\r\n"+
-				"End Function\r\n";
-
-			// http://msdn.microsoft.com/en-us/library/ms536420(v=vs.85).aspx
-			// proprietary IE function
-			window.execScript(IEBinaryToArray_ByteStr_Script, 'vbscript');
-
-			scrambledStr = IEBinaryToArray_ByteStr(byteArray);
-		}
-
-		var lastChr = IEBinaryToArray_ByteStr_Last(byteArray),
-		result = "",
-		i = 0,
-		l = scrambledStr.length % 8,
-		thischar;
-		while (i < l) {
-			thischar = scrambledStr.charCodeAt(i++);
-			result += String.fromCharCode(thischar & 0xff, thischar >> 8);
-		}
-		l = scrambledStr.length
-		while (i < l) {
-			result += String.fromCharCode(
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-				(thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8);
-		}
-		if (lastChr > -1) {
-			result += String.fromCharCode(lastChr);
-		}
-		return result;
-	};
-
-	jQuery.ajaxSetup({
-		converters: {
-			'* dataview': function(data) {
-				return new jDataView(data);
-			}
-		},
-		accepts: {
-			dataview: "text/plain; charset=x-user-defined"
-		},
-		responseHandler: {
-			dataview: function (responses, options, xhr) {
-				// Array Buffer Firefox
-				if ('mozResponseArrayBuffer' in xhr) {
-					responses.text = xhr.mozResponseArrayBuffer;
-				}
-				// Array Buffer Chrome
-				else if ('responseType' in xhr && xhr.responseType === 'arraybuffer' && xhr.response) {
-					responses.text = xhr.response;
-				}
-				// Internet Explorer (Byte array accessible through VBScript -- convert to text)
-				else if ('responseBody' in xhr) {
-					responses.text = convertResponseBodyToText(xhr.responseBody);
-				}
-				// Older Browsers
-				else {
-					responses.text = xhr.responseText;
-				}
-			}
-		}
-	});
-
-	jQuery.ajaxPrefilter('dataview', function(options, originalOptions, jqXHR) {
-		// trying to set the responseType on IE 6 causes an error
-		if (jQuery.support.ajaxResponseType) {
-			if (!options.hasOwnProperty('xhrFields')) {
-				options.xhrFields = {};
-			}
-			options.xhrFields.responseType = 'arraybuffer';
-		}
-		options.mimeType = 'text/plain; charset=x-user-defined';
-	});
-}
-
-global.jDataView = (global.module || {}).exports = jDataView;
-if (typeof module !== 'undefined') {
-	module.exports = jDataView;
-}
-
-})(this);
-
-})(require("__browserify_buffer").Buffer)
-},{"__browserify_buffer":14}],16:[function(require,module,exports){
-var util = require('util')
-var AbstractIterator  = require('abstract-leveldown').AbstractIterator
-module.exports = Iterator
-
-function Iterator (db, options) {
-  if (!options) options = {}
-  this.options = options
-  AbstractIterator.call(this, db)
-  this._order = !!options.reverse ? 'DESC': 'ASC'
-  this._start = options.start
-  this._limit = options.limit
-  if (this._limit) this._count = 0
-  this._end   = options.end
-  this._done = false
-}
-
-util.inherits(Iterator, AbstractIterator)
-
-Iterator.prototype.createIterator = function() {
-  var lower, upper
-  var onlyStart = typeof this._start !== 'undefined' && typeof this._end === 'undefined'
-  var onlyEnd = typeof this._start === 'undefined' && typeof this._end !== 'undefined'
-  var startAndEnd = typeof this._start !== 'undefined' && typeof this._end !== 'undefined'
-  if (onlyStart) {
-    var index = this._start
-    if (this._order === 'ASC') {
-      lower = index
-    } else {
-      upper = index
-    }
-  } else if (onlyEnd) {
-    var index = this._end
-    if (this._order === 'DESC') {
-      lower = index
-    } else {
-      upper = index
-    }
-  } else if (startAndEnd) {
-    lower = this._start
-    upper = this._end
-    if (this._start > this._end) {
-      lower = this._end
-      upper = this._start
-    }
-  }
-  if (lower || upper) {
-    this._keyRange = this.options.keyRange || this.db.makeKeyRange({
-      lower: lower,
-      upper: upper
-      // TODO expose excludeUpper/excludeLower
-    })
-  }
-  this.iterator = this.db.iterate(this.onItem.bind(this), {
-    keyRange: this._keyRange,
-    autoContinue: false,
-    order: this._order,
-    onError: function(err) { console.log('horrible error', err) },
-  })
-}
-
-// TODO the limit implementation here just ignores all reads after limit has been reached
-// it should cancel the iterator instead but I don't know how
-Iterator.prototype.onItem = function (value, cursor, cursorTransaction) {
-  if (!cursor && this.callback) {
-    this.callback()
-    this.callback = false
-    return
-  }
-  if (this._limit && this._limit > 0) {
-    if (this._limit > this._count) this.callback(false, cursor.key, cursor.value)
-  } else {
-    this.callback(false, cursor.key, cursor.value)
-  }
-  if (this._limit) this._count++
-  if (cursor) cursor.continue()
-}
-
-Iterator.prototype._next = function (callback) {
-  if (!callback) return new Error('next() requires a callback argument')
-  if (!this._started) {
-    this.createIterator()
-    this._started = true
-  }
-  this.callback = callback
-}
-},{"util":6,"abstract-leveldown":17}],17:[function(require,module,exports){
 (function(process,Buffer){/* Copyright (c) 2013 Rod Vagg, MIT License */
 
 var AbstractIterator     = require('./abstract-iterator')
@@ -7199,7 +7113,93 @@ AbstractLevelDOWN.prototype._checkKeyValue = function (obj, type) {
 module.exports.AbstractLevelDOWN = AbstractLevelDOWN
 module.exports.AbstractIterator  = AbstractIterator
 })(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"./abstract-iterator":25,"./abstract-chained-batch":26,"__browserify_process":7,"__browserify_buffer":14}],27:[function(require,module,exports){
+},{"./abstract-iterator":25,"./abstract-chained-batch":26,"__browserify_process":7,"__browserify_buffer":13}],20:[function(require,module,exports){
+var util = require('util')
+var AbstractIterator  = require('abstract-leveldown').AbstractIterator
+module.exports = Iterator
+
+function Iterator (db, options) {
+  if (!options) options = {}
+  this.options = options
+  AbstractIterator.call(this, db)
+  this._order = !!options.reverse ? 'DESC': 'ASC'
+  this._start = options.start
+  this._limit = options.limit
+  if (this._limit) this._count = 0
+  this._end   = options.end
+  this._done = false
+}
+
+util.inherits(Iterator, AbstractIterator)
+
+Iterator.prototype.createIterator = function() {
+  var lower, upper
+  var onlyStart = typeof this._start !== 'undefined' && typeof this._end === 'undefined'
+  var onlyEnd = typeof this._start === 'undefined' && typeof this._end !== 'undefined'
+  var startAndEnd = typeof this._start !== 'undefined' && typeof this._end !== 'undefined'
+  if (onlyStart) {
+    var index = this._start
+    if (this._order === 'ASC') {
+      lower = index
+    } else {
+      upper = index
+    }
+  } else if (onlyEnd) {
+    var index = this._end
+    if (this._order === 'DESC') {
+      lower = index
+    } else {
+      upper = index
+    }
+  } else if (startAndEnd) {
+    lower = this._start
+    upper = this._end
+    if (this._start > this._end) {
+      lower = this._end
+      upper = this._start
+    }
+  }
+  if (lower || upper) {
+    this._keyRange = this.options.keyRange || this.db.makeKeyRange({
+      lower: lower,
+      upper: upper
+      // TODO expose excludeUpper/excludeLower
+    })
+  }
+  this.iterator = this.db.iterate(this.onItem.bind(this), {
+    keyRange: this._keyRange,
+    autoContinue: false,
+    order: this._order,
+    onError: function(err) { console.log('horrible error', err) },
+  })
+}
+
+// TODO the limit implementation here just ignores all reads after limit has been reached
+// it should cancel the iterator instead but I don't know how
+Iterator.prototype.onItem = function (value, cursor, cursorTransaction) {
+  if (!cursor && this.callback) {
+    this.callback()
+    this.callback = false
+    return
+  }
+  if (this._limit && this._limit > 0) {
+    if (this._limit > this._count) this.callback(false, cursor.key, cursor.value)
+  } else {
+    this.callback(false, cursor.key, cursor.value)
+  }
+  if (this._limit) this._count++
+  if (cursor) cursor.continue()
+}
+
+Iterator.prototype._next = function (callback) {
+  if (!callback) return new Error('next() requires a callback argument')
+  if (!this._started) {
+    this.createIterator()
+    this._started = true
+  }
+  this.callback = callback
+}
+},{"util":6,"abstract-leveldown":21}],27:[function(require,module,exports){
 (function(){// UTILITY
 var util = require('util');
 var Buffer = require("buffer").Buffer;
@@ -9026,7 +9026,7 @@ SlowBuffer.prototype.writeDoubleLE = Buffer.prototype.writeDoubleLE;
 SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 
 })()
-},{"assert":27,"./buffer_ieee754":28,"base64-js":29}],22:[function(require,module,exports){
+},{"assert":27,"./buffer_ieee754":28,"base64-js":29}],17:[function(require,module,exports){
 (function(){var dataview = require('jDataView');
 
 // Generated by CoffeeScript 1.6.2
@@ -9483,7 +9483,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 })(module.exports);
 
 })()
-},{"jDataView":21}],29:[function(require,module,exports){
+},{"jDataView":16}],29:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -9569,7 +9569,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],20:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var blockInfo = require('minecraft-blockinfo')
 
 // Generated by CoffeeScript 1.6.2
@@ -9829,7 +9829,7 @@ module.exports.calcPoint = calcPoint;
 module.exports.typeToCoords = typeToCoords;
 
 
-},{"minecraft-blockinfo":30}],23:[function(require,module,exports){
+},{"minecraft-blockinfo":30}],18:[function(require,module,exports){
 var blockInfo = require('minecraft-blockinfo')
 
 // Generated by CoffeeScript 1.6.2
