@@ -8,7 +8,7 @@ window = self
 console = {log: function(msg) { self.postMessage({log: msg}) }}
 
 function loadChunk(worldName, position, gameChunkSize, seed) {
-  if (seed && !generateChunk) generateChunk = terrain(seed)
+  if (seed && !generateChunk) generateChunk = terrain(seed, 0, 5, 60)
   var p = position
   var cs = gameChunkSize
   var dimensions = [cs, cs, cs]

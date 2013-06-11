@@ -73,23 +73,13 @@ function initGame(options) {
       arrayType: Uint8Array,
       worldOrigin: pos,
       materials: materials,
-      // materials: ['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d', '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476', '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc', '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'],
+      // materials: ['#fff', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d', '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476', '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc', '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'],
       materialFlatColor: false
     })
 
     window.game = game // for console debugging
-    var makeFly = fly(game)
     var target = game.controls.target()
-    game.flyer = makeFly(target)
-    
-    game.on('tick', function() {
-      walk.render(target.playerSkin)
-      var vx = Math.abs(target.velocity.x)
-      var vz = Math.abs(target.velocity.z)
-      if (vx > 0.001 || vz > 0.001) walk.stopWalking()
-      else walk.startWalking()
-    })
-    
+
     var worldWorker = workerstream('world-worker-bundle.js')
     worldWorker.on('data', function(data) {
       if (data.ready && game.paused) return startGame(game, level, state, worldWorker)
@@ -141,7 +131,6 @@ function initGame(options) {
     avatar.rotation.copy(state.player.rotation)
     storeState(level.db, game, options.worldName, state.seed)
   }
-  
 }
 
 function saveRegion(buffer, worldName, regionX, regionZ, cb) {
