@@ -1,8 +1,7 @@
 var gravatar = require('gravatar')
-var Hoodie = require('hoodie')
 var request = require('browser-request')
 
-module.exports = function() {
+module.exports = function(user) {
   var formContainer = $('#default-popup')
   var frontPageForm = $('.front-page-form')
   
@@ -20,8 +19,8 @@ module.exports = function() {
       var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
       fileInput.click()
     })
-    
-  request({ json: true, url: '/_session'}, function(err, resp, session) {
+  
+  user.getSession(function(err, session) {
     if (session.email) isLoggedIn(session.email)
     else isLoggedOut()
   })
@@ -42,22 +41,20 @@ module.exports = function() {
     $('.greeting').text('Hello ' + user)
     frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
     formContainer.html($('.welcome').html())
-    // set timeout is because of some hoodie login race condition weirdness
-    setTimeout(function() {
-      getGravatar(function(err, url) {
-        if (err || !url) return
-        formContainer.find('.gravatar').append('<img src="' + url + '">')
+    getGravatar(function(err, url) {
+      if (err || !url) return
+      formContainer.find('.gravatar').append('<img src="' + url + '">')
+    })
+    getWorlds(function(err, worlds) {
+      if (err) return
+      var content = $('.demo-browser-content')
+      content.html("<h3>" + user + "'s Worlds</h3>")
+      if (worlds.length === 0) content.html("You haven't created any worlds yet!")
+      worlds.map(function(world) {
+        content.append('<p><a href="' + "/world.html#" + user + '/' + world.name + '">' + world.name + '</a></p>')
       })
-      getWorlds(function(err, worlds) {
-        if (err) return
-        var content = $('.demo-browser-content')
-        content.html("<h3>" + user + "'s Worlds</h3>")
-        if (worlds.length === 0) content.html("You haven't created any worlds yet!")
-        worlds.map(function(world) {
-          content.append('<p><a href="' + "/world.html#" + user + '/' + world.name + '">' + world.name + '</a></p>')
-        })
-      })
-    }, 100)
+    })
+
   }
 
   function isLoggedOut() {
@@ -89,6 +86,7 @@ module.exports = function() {
   }
   
   function getWorlds(cb) {
+    return cb(false, [])
     hoodie.store.findAll('world')
       .done(function (objects) {
         if (objects.length === 0) return cb(false, [])
@@ -98,6 +96,7 @@ module.exports = function() {
   }
 
   function getGravatar(cb) {
+    return cb()
     hoodie.store.findAll('profile')
       .done(function (objects) {
         if (objects.length === 0) return cb(false, false)
