@@ -1,7 +1,11 @@
 var gravatar = require('gravatar')
 var Hoodie = require('hoodie')
+var request = require('browser-request')
 
 module.exports = function() {
+  var formContainer = $('#default-popup')
+  var frontPageForm = $('.front-page-form')
+  
   $(document)
     .on('click', '.open-menu', openDialog)
     .on('click', '.open-login', openDialog)
@@ -11,51 +15,17 @@ module.exports = function() {
     .on('click', '.logout', logout)
     .on('submit', '.login-screen .form', submitLoginForm)
     .on('click', '.new-world', showNewWorldForm)
-    .on('submit', '.new-world-form', function(e) {
-      e.preventDefault()
-      var worldName = $(e.target).find('#world-name').val()
-      var submit = $(e.target).find('input[type="submit"]')
-      submit.hide()
-      hoodie.store.add('world', {name: worldName})
-        .done(function(user) {
-          window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
-          
-          // apparently setting href and triggering reload isn't synchronous!???
-          // so I wait for 1 second before forcing it
-          setTimeout(function() {
-            window.location.reload()
-          }, 1000)
-          
-        })
-        .fail(function(e) {
-          submit.show()
-        })
-      return false
-    })
+    .on('submit', '.new-world-form', submitNewWorldForm)
     .on('click', '.file-select', function(e) {
       var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
       fileInput.click()
     })
     
-
-  var hoodie  = new Hoodie("http://blockplot.jit.su/_api/")
-  // var hoodie  = new Hoodie("http://127.0.0.1:8080/_api/")
-
-  var formContainer = $('#default-popup')
-  var frontPageForm = $('.front-page-form')
-
-  if (hoodie.account.username) isLoggedIn(hoodie.account.username)
-  else isLoggedOut()
-
-  function authError(e) {
-    console.log('auth err', e)
-    logout()
-  }
-
-  hoodie.account.on('signin', isLoggedIn)
-  hoodie.account.on('signout', isLoggedOut)
-  hoodie.on('account:error:unauthenticated remote:error:unauthenticated', authError)
-
+  request({ json: true, url: '/_session'}, function(err, resp, session) {
+    if (session.email) isLoggedIn(session.email)
+    else isLoggedOut()
+  })
+  
   function openDialog() {
     Avgrund.show( "#default-popup" )
   }
@@ -229,12 +199,32 @@ module.exports = function() {
     $('.demo-browser-content').html($('.new-world-form').html())
   }
   
+  function submitNewWorldForm(e) {
+    e.preventDefault()
+    var worldName = $(e.target).find('#world-name').val()
+    var submit = $(e.target).find('input[type="submit"]')
+    submit.hide()
+    hoodie.store.add('world', {name: worldName})
+      .done(function(user) {
+        window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
+        
+        // apparently setting href and triggering reload isn't synchronous!???
+        // so I wait for 1 second before forcing it
+        setTimeout(function() {
+          window.location.reload()
+        }, 1000)
+        
+      })
+      .fail(function(e) {
+        submit.show()
+      })
+    return false
+  }
+  
   function click(el) {
     // Simulate click on the element.
     var evt = document.createEvent('Event')
     evt.initEvent('click', true, true)
     el.dispatchEvent(evt)
   }
-
-  return hoodie
 }

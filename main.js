@@ -1,4 +1,4 @@
 require('./js/parallax')()
 
-var hoodie = require('./js/common')()
+require('./js/common')()
 
