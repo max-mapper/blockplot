@@ -1,5 +1,5 @@
 var gravatar = require('gravatar')
-var request = require('browser-request')
+var concat = require('concat-stream')
 
 module.exports = function(user) {
   var formContainer = $('#default-popup')
@@ -54,7 +54,6 @@ module.exports = function(user) {
         content.append('<p><a href="' + "/world.html#" + user + '/' + world.name + '">' + world.name + '</a></p>')
       })
     })
-
   }
 
   function isLoggedOut() {
@@ -86,13 +85,20 @@ module.exports = function(user) {
   }
   
   function getWorlds(cb) {
-    return cb(false, [])
-    hoodie.store.findAll('world')
-      .done(function (objects) {
-        if (objects.length === 0) return cb(false, [])
-        cb(false, objects)
-      })
-      .fail(cb)
+    var worldStream = user.db.createReadStream({
+      start: 'user|worlds',
+      end: 'user|x' // todo range read module
+    })
+    var sentError
+    worldStream.pipe(concat(function(worlds) {
+      if (!worlds) worlds = []
+      worlds = worlds.map(function(w) { return w.value })
+      if (!sentError) cb(false, worlds)
+    }))
+    worldStream.on('error', function(err) {
+      sentError = true
+      cb(err)
+    })
   }
 
   function getGravatar(cb) {
@@ -203,20 +209,17 @@ module.exports = function(user) {
     var worldName = $(e.target).find('#world-name').val()
     var submit = $(e.target).find('input[type="submit"]')
     submit.hide()
-    hoodie.store.add('world', {name: worldName})
-      .done(function(user) {
-        window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
-        
-        // apparently setting href and triggering reload isn't synchronous!???
-        // so I wait for 1 second before forcing it
-        setTimeout(function() {
-          window.location.reload()
-        }, 1000)
-        
-      })
-      .fail(function(e) {
-        submit.show()
-      })
+    user.db.put('user|worlds|' + worldName, {name: worldName}, function(err) {
+      if (err) return submit.show()
+      return console.log('saved!', worldName, err)
+      window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
+      
+      // apparently setting href and triggering reload isn't synchronous!???
+      // so I wait for 1 second before forcing it
+      setTimeout(function() {
+        window.location.reload()
+      }, 1000)
+    })
     return false
   }
   
