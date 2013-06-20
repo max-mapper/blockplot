@@ -102,18 +102,14 @@ module.exports = function(user) {
   }
 
   function getGravatar(cb) {
-    return cb()
-    hoodie.store.findAll('profile')
-      .done(function (objects) {
-        if (objects.length === 0) return cb(false, false)
-        var email = objects[0].email
-        if (!email) return cb(false, false)
-        var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: 'retro'})
-        cb(false, gravURL)
-      })
-      .fail(function(err) {
-        cb(err)
-      })
+    user.db.get('profile', function(err, profile) {
+      if (err) return cb(err)
+      if (!profile) return cb(false, false)
+      var email = profile.email
+      if (!email) return cb(false, false)
+      var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: 'retro'})
+      cb(false, gravURL)
+    })
   }
 
   function missing(form, field) {
