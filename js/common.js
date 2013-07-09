@@ -7,12 +7,9 @@ module.exports = function(user) {
   
   $(document)
     .on('click', '.open-menu', openDialog)
-    .on('click', '.open-login', openDialog)
-    .on('click', '.show-signup', showSignup)
+    .on('click', '.open-login', user.persona.identify.bind(user.persona))
     .on('click', '.show-login', showLogin)
-    .on('submit', '.front-page-form .form', submitSignupForm)
     .on('click', '.logout', logout)
-    .on('submit', '.login-screen .form', submitLoginForm)
     .on('click', '.new-world', showNewWorldForm)
     .on('submit', '.new-world-form', submitNewWorldForm)
     .on('click', '.file-select', function(e) {
@@ -63,10 +60,6 @@ module.exports = function(user) {
     frontPageForm.find('p:first').html($('.frontpage-signup-form').html())
   }
 
-  function showSignup() {
-    formContainer.find('.form').html($('.signup-form').html())
-  }
-
   function showLogin() {
     formContainer.find('.form').html($('.login-form').html())
   }
@@ -81,7 +74,7 @@ module.exports = function(user) {
   }
 
   function logout() {
-    hoodie.account.signOut()
+    user.persona.unidentify.bind(user.persona)
   }
   
   function getWorlds(cb) {
@@ -149,52 +142,7 @@ module.exports = function(user) {
     }
   }
 
-  function submitSignupForm(e) {
-    e.preventDefault()
-    var form = $(e.target)
-    form.find('.messages').html('')
-    var data = getLoginFormData(form)
-    if (!validate(form)) return
-    form.find('input').addClass('disabled')
-    hoodie.account.signUp(data.username, data.password)
-      .done(function(user) {
-        var saveProfile = hoodie.store.add('profile', {email: data.email})
-          .done(function() {
-            form.find('input.disabled').removeClass('disabled')
-            window.scrollTo(0,0)
-            $('.open-login').click()
-          })
-          .fail(function(err) { alert('error saving profile!') })
-      })
-      .fail(function(err) {
-        var msg = err.reason
-        if (err.error && err.error === "conflict") msg = "Username already exists."
-        form.find('.messages').html('<p>' + msg + '</p>')
-      })
-    return false;
-  }
 
-
-  function submitLoginForm(e) {
-    e.preventDefault()
-    var form = $(e.target)
-    form.find('.messages').html('')
-    var data = getLoginFormData(form)
-    if (!validate(form)) return
-    var icon = $('.login-screen .login-icon > img')
-    icon.addClass('rotating')
-    hoodie.account[data.action](data.username, data.password)
-      .done(function(user) {
-        if (data.action === 'signUp') hoodie.store.add('email', {email: data.email})
-        icon.removeClass('rotating')
-      })
-      .fail(function(err) {
-        icon.removeClass('rotating')
-        var msg = err.reason
-        if (err.error && err.error === "conflict") msg = "Username already exists."
-        form.find('.messages').html('<p>' + msg + '</p>')
-      })
-  }
   
   function showNewWorldForm(e) {
     $('.demo-browser-content').html($('.new-world-form').html())

@@ -1,6 +1,7 @@
 var levelup = require('levelup')
 var leveljs = require('level-js')
 var sublevel = require('level-sublevel')
+var createPersona = require('persona-id')
 
 var request = require('browser-request')
 
@@ -17,6 +18,7 @@ module.exports = function(options) {
 
 function User(db, options) {
   this.db = db
+  this.persona = createPersona()
   this.options = options
 }
 
