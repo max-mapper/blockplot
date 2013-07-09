@@ -33,7 +33,7 @@ body {
 .front-page-form .form .login-field { width: 220px; }
 .short-form { width: 300px; }
 .view-profile { font-size: 15px; padding-left: 0px !important; }
-.gravatar { height: 111px; }
+.gravatar { width: 111px; }
 
 /* flat ui overrides */
   .demo-browser { background: #2c3e50; margin: 0; padding-top: 0px; border-radius: 6px; }

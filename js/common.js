@@ -3,9 +3,11 @@ var concat = require('concat-stream')
 
 module.exports = function(user) {
   var formContainer = $('#default-popup')
-  var frontPageForm = $('.front-page-form')
+  var username = 'anonymous'
   
   $(document)
+    .on('click', '.upload-world', openDialog)
+    .on('click', '.new-world', openDialog)
     .on('click', '.open-menu', openDialog)
     .on('click', '.open-login', user.persona.identify.bind(user.persona))
     .on('click', '.show-login', showLogin)
@@ -18,8 +20,8 @@ module.exports = function(user) {
     })
   
   user.getSession(function(err, session) {
-    if (session.email) isLoggedIn(session.email)
-    else isLoggedOut()
+    if (session.email) username = session.email
+    loadWorldsList(username)
   })
   
   function openDialog() {
@@ -29,35 +31,34 @@ module.exports = function(user) {
   function closeDialog() {
     Avgrund.hide()
   }
-
-  function isLoggedIn(user) {
-    loadProfile(user)
-  }
   
-  function loadProfile(user) {
-    $('.greeting').text('Hello ' + user)
-    frontPageForm.find('p:first').html($('.frontpage-logged-in').html())
+  function loadWorldsList(user) {
+    var loggedIn = user !== 'anonymous'
+    var greetingText = 'Hello!'
+    if (loggedIn) greetingText = 'Hello ' + user + '+!'
+    $('.greeting').text(greetingText)
     formContainer.html($('.welcome').html())
-    getGravatar(function(err, url) {
-      if (err || !url) return
-      formContainer.find('.gravatar').append('<img src="' + url + '">')
-    })
+    if (loggedIn) {
+      getGravatar(function(err, url) {
+        if (err || !url) return
+        formContainer.find('.gravatar').append('<img src="' + url + '">')
+      })
+    }
     getWorlds(function(err, worlds) {
       if (err) return
       var content = $('.demo-browser-content')
-      content.html("<h3>" + user + "'s Worlds</h3>")
+      var title = "Your Worlds"
+      if (loggedIn) title = user + "'s Worlds"
+      content.html("<h3>" + title + "</h3>")
       if (worlds.length === 0) content.html("You haven't created any worlds yet!")
       worlds.map(function(world) {
-        content.append('<p><a href="' + "/world.html#" + user + '/' + world.name + '">' + world.name + '</a></p>')
+        content.append('<p><a href="/world.html#' + (loggedIn ? user : '') + '/' + world.name + '">' + world.name + '</a></p>')
       })
     })
   }
 
   function isLoggedOut() {
-    $('.greeting').text('')
-    formContainer.html($('.form-container').html())
-    formContainer.find('.form').html($('.login-form').html())
-    frontPageForm.find('p:first').html($('.frontpage-signup-form').html())
+    console.log('isLoggedOut')
   }
 
   function showLogin() {
@@ -79,8 +80,8 @@ module.exports = function(user) {
   
   function getWorlds(cb) {
     var worldStream = user.db.createReadStream({
-      start: 'user|worlds',
-      end: 'user|x' // todo range read module
+      start: username + '|worlds',
+      end: username + '|x' // todo range read module
     })
     var sentError
     worldStream.pipe(concat(function(worlds) {
@@ -104,45 +105,6 @@ module.exports = function(user) {
       cb(false, gravURL)
     })
   }
-
-  function missing(form, field) {
-    var data = getLoginFormData(form)
-    var thisField = fieldParent(form, field)
-    if (!data[field] || data[field] === "") {
-      thisField.addClass('error')
-      return true
-    } else {
-      thisField.removeClass('error')
-      return false
-    }
-  }
-
-  function validate(form) {
-    var data = getLoginFormData(form)
-    var missingUser = missing(form, 'username')
-    var missingEmail = missing(form, 'email')
-    var missingPass = missing(form, 'password')
-    if (missingUser || missingPass) return false
-    if (data.action !== "signUp") return true
-    var pass = formField(form, 'password').val()
-    if (missingEmail) return
-    return true
-  }
-
-  function getLoginFormData(form) {
-    var action = form.find('input[type="submit"]').attr('data-action')
-    var username = form.find('input[name="username"]').val()
-    var email = form.find('input[name="email"]').val()
-    var password = form.find('input[name="password"]').val()
-    return {
-      action: action,
-      username: username,
-      email: email,
-      password: password
-    }
-  }
-
-
   
   function showNewWorldForm(e) {
     $('.demo-browser-content').html($('.new-world-form').html())
@@ -153,10 +115,9 @@ module.exports = function(user) {
     var worldName = $(e.target).find('#world-name').val()
     var submit = $(e.target).find('input[type="submit"]')
     submit.hide()
-    user.db.put('user|worlds|' + worldName, {name: worldName}, function(err) {
+    user.db.put(username + '|worlds|' + worldName, {name: worldName}, function(err) {
       if (err) return submit.show()
-      return console.log('saved!', worldName, err)
-      window.location.href = "/world.html#" + hoodie.account.username + '/' + worldName
+      window.location.href = "/world.html#" + (username !== 'anonymous' ? username : '') + '/' + worldName
       
       // apparently setting href and triggering reload isn't synchronous!???
       // so I wait for 1 second before forcing it

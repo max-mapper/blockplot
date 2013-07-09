@@ -4,3 +4,4 @@ require('./js/parallax')()
 
 var user = loadUser({dbName: 'blocks'})
 commonStuff(user)
+
