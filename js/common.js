@@ -2,8 +2,11 @@ var gravatar = require('gravatar')
 var concat = require('concat-stream')
 
 module.exports = function(user) {
-  var formContainer = $('#default-popup')
   var username = 'anonymous'
+  if (user.session && user.session.email) username = user.session.email
+  loadWorldsList(username)
+  
+  var formContainer = $('#default-popup')
   
   $(document)
     .on('click', '.upload-world', openDialog)
@@ -18,11 +21,6 @@ module.exports = function(user) {
       var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
       fileInput.click()
     })
-  
-  user.getSession(function(err, session) {
-    if (session.email) username = session.email
-    loadWorldsList(username)
-  })
   
   function openDialog() {
     Avgrund.show( "#default-popup" )

@@ -1,7 +1,11 @@
-var loadUser = require('./user')
-var commonStuff = require('./js/common')
 require('./js/parallax')()
 
-var user = loadUser({dbName: 'blocks'})
-commonStuff(user)
+var loadUser = require('./user')
+var commonStuff = require('./js/common')
 
+var user = loadUser({dbName: 'blocks'})
+
+user.getSession(function(err, session) {
+  user.session = session
+  commonStuff(user)
+})
