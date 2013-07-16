@@ -5,11 +5,11 @@ var user = loadUser({dbName: 'blocks'})
 
 user.getSession(function(err, session) {
   user.session = session
-  loadWorld(user)
+  beginLoadingWorld(user)
   commonStuff(user)
 })
 
-function loadWorld(user) {
+function beginLoadingWorld(user) {
   var voxelUtils = require('./js/voxel')
   var voxelLevel = require('voxel-level')
   window.voxelUtils = voxelUtils
@@ -32,7 +32,7 @@ function loadWorld(user) {
     return document.location.href = "/"
     worldName = false
   } else {
-    userName = names[0]
+    userName = names[0] || 'anonymous'
     worldName = names[1]
   }
 

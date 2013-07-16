@@ -4,7 +4,6 @@ var concat = require('concat-stream')
 module.exports = function(user) {
   var username = 'anonymous'
   if (user.session && user.session.email) username = user.session.email
-  loadWorldsList(username)
   
   var formContainer = $('#default-popup')
   
@@ -21,6 +20,9 @@ module.exports = function(user) {
       var fileInput = $(e.target).parents('aside').find('input[type="file"]').first()
       fileInput.click()
     })
+  
+  loadWorldsList(username)
+  
   
   function openDialog() {
     Avgrund.show( "#default-popup" )
