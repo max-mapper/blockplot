@@ -26,6 +26,7 @@ User.prototype.getSession = function(cb) {
   var self = this
   var opts = { json: true, url: this.options.baseURL + '_session'}
   request(opts, function(err, resp, profile) {
+    if (err) return cb(err, {})
     if (!profile.email) return cb(err, profile)
     self.db.put('profile', profile, function(err) {
       cb(err, profile)

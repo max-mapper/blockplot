@@ -120,7 +120,7 @@ function initGame(options) {
     })
     
     if (!state.player) state.player = {
-      position: {x: 0, y: 0, z: 0},
+      position: {x: 0, y: 10, z: 0},
       rotation: {x: 0, y: 0, z: 0}
     }
 
