@@ -37,11 +37,14 @@ function initGame(options) {
   var textures = "http://commondatastorage.googleapis.com/voxeltextures/painterly/"
 
   var materials = []
+  var colors = []
   
   Object.keys(blockInfo.blocks).map(function(b) {
     var type = blockInfo.blocks[b].type
     var id = blockInfo.blocks[b].id
+    var color = blockInfo.blocks[b].color
     materials[id - 1] = type
+    colors[id - 1] = color
   })
   
   var pos = [0, 0, 0]
@@ -72,8 +75,7 @@ function initGame(options) {
       chunkDistance: 4,
       arrayType: Uint8Array,
       worldOrigin: pos,
-      // materials: materials,
-      materials: ['#fff', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d', '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476', '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc', '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'],
+      materials: colors,
       materialFlatColor: true
     })
 

@@ -33,4 +33,3 @@ User.prototype.getSession = function(cb) {
     })
   })
 }
-

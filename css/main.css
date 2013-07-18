@@ -12,6 +12,12 @@ body {
   color: #222;
 }
 
+.micro {
+  display: block;
+  margin: 10px 0 0 0;
+  font-size: 12px;
+}
+
 .logo {
   margin: 0 auto;
   background: url(../img/logo.png) no-repeat 0 0;
