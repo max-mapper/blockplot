@@ -1,9 +1,9 @@
 var createGame = require('voxel-hello-world')
 var fly = require('voxel-fly')
-var voxelLevel = require('voxel-level')
 var workerstream = require('workerstream')
 var blockInfo = require('minecraft-blockinfo')
 var walk = require('voxel-walk')
+var voxelLevel = require('voxel-level')
 
 var loadDelay = 1000 // milliseconds
 
@@ -22,16 +22,20 @@ function getState(game) {
   return state
 }
 
-function storeState(db, game, worldName, seed, cb) {
+function storeState(user, game, worldName, seed, cb) {
   if (!cb) cb = function noop(){}
   return setInterval(function() {
     var state = getState(game)
-    if (seed) state.seed = seed
-    db.put(worldName + '|state', state, cb)
+    var worlds = user.db.sublevel('worlds')
+    worlds.get(worldName, function(err, world) {
+      world.state = state
+      if (seed) world.seed = seed
+      worlds.put(worldName, world, cb)
+    })
   }, 5000)
 }
 
-function initGame(options) {
+function initGame(user, options) {
   $('.content').hide()
 
   var textures = "http://commondatastorage.googleapis.com/voxeltextures/painterly/"
@@ -51,91 +55,77 @@ function initGame(options) {
   var chunkDimensions = [16, 16, 16]
   var gameChunkSize = 16
   
-  initDB(initRendering)
+  var game = createGame({
+    generateChunks: false,
+    texturePath: textures,
+    playerSkin: textures + '../player.png',
+    chunkSize: gameChunkSize,
+    chunkDistance: 4,
+    arrayType: Uint8Array,
+    worldOrigin: pos,
+    materials: colors,
+    materialFlatColor: true
+  })
+
+  window.game = game // for console debugging
+  var target = game.controls.target()
   
-  function initDB(cb) {
-    var level = voxelLevel('blocks', function(err) {
-      if (err) return cb(err.message)
-      level.db.get(options.worldName + '|state', { asBuffer: false }, function(err, state) {
-        if (!state) state = {}
-        if (options.seed) state.seed = options.seed
-        cb(false, level, state)
-      })
-    })
-  }
+  var level = voxelLevel(user.db)
 
-  function initRendering(err, level, state) {
-    if (err) return alert(err)
-    
-    var game = require('voxel-hello-world')({
-      generateChunks: false,
-      texturePath: textures,
-      playerSkin: textures + '../player.png',
-      chunkSize: gameChunkSize,
-      chunkDistance: 4,
-      arrayType: Uint8Array,
-      worldOrigin: pos,
-      materials: colors,
-      materialFlatColor: true
-    })
-
-    window.game = game // for console debugging
-    var target = game.controls.target()
-
-    var worldWorker = workerstream('world-worker-bundle.js')
-    worldWorker.on('data', function(data) {
-      if (data.ready && game.paused) return startGame(game, level, state, worldWorker)
-      if (data.log) return console.log(data)
-      var chunk = {
-        position: data.position,
-        voxels: new Uint8Array(data.buffer),
-        dims: data.dimensions
-      }
-      setTimeout(function() {
-        game.showChunk(chunk)
-      }, 10 + ~~(Math.random() * loadDelay))
-    })
-    worldWorker.on('error', function(e) { console.log('err', e)})
-    worldWorker.write({ loadDB: 'blocks' })
-  }
-  
-  function startGame(game, level, state, worldWorker) {
-    
-    game.voxels.on('missingChunk', function(p) {
-      worldWorker.write({
-        worldName: options.worldName,
-        position: p,
-        gameChunkSize: gameChunkSize,
-        seed: state.seed
-      })
-    })
-    
-    game.on('dirtyChunkUpdate', function(chunk) {
-      var storeChunk = {
-        position: chunk.position.map(function(p) { return p * gameChunkSize }),
-        voxels: chunk.voxels,
-        dimensions: chunk.dimensions
-      }
-      level.store(options.worldName, storeChunk, function afterStore(err) {
-        if (err) console.error('chunk store error', err)
-      })
-    })
-    
-    if (!state.player) state.player = {
-      position: {x: 0, y: 10, z: 0},
-      rotation: {x: 0, y: 0, z: 0}
+  var worldWorker = workerstream('world-worker-bundle.js')
+  worldWorker.on('data', function(data) {
+    if (data.ready && game.paused) return startGame(game, user, level, options, worldWorker)
+    if (data.log) return console.log(data)
+    var chunk = {
+      position: data.position,
+      voxels: new Uint8Array(data.buffer),
+      dims: data.dimensions
     }
-
-    game.paused = false
-    game.flyer.startFlying()
-    var avatar = game.controls.target().avatar
-    avatar.position.copy(state.player.position)
-    avatar.rotation.copy(state.player.rotation)
-    storeState(level.db, game, options.worldName, state.seed)
-  }
+    setTimeout(function() {
+      game.showChunk(chunk)
+    }, 10 + ~~(Math.random() * loadDelay))
+  })
+  worldWorker.on('error', function(e) { console.log('err', e)})
+  worldWorker.write({ dbName: 'blocks' })
 }
 
-function saveRegion(buffer, worldName, regionX, regionZ, cb) {
+function startGame(game, user, level, options, worldWorker) {
+  options.state = options.state || {}
+  
+  game.voxels.on('missingChunk', function(p) {
+    worldWorker.write({
+      worldName: options.name,
+      position: p,
+      gameChunkSize: game.chunkSize,
+      seed: options.seed
+    })
+  })
+  
+  game.on('dirtyChunkUpdate', function(chunk) {
+    var storableChunk = {
+      position: chunk.position.map(function(p) { return p * game.chunkSize }),
+      voxels: chunk.voxels,
+      dimensions: chunk.dimensions
+    }
+    level.store(options.name, storableChunk, function afterStore(err) {
+      if (err) console.error('chunk store error', err)
+    })
+  })
+  
+  if (!options.state.player) options.state.player = {
+    position: {x: 0, y: 10, z: 0},
+    rotation: {x: 0, y: 0, z: 0}
+  }
+
+  game.paused = false
+  game.flyer.startFlying()
+  var avatar = game.controls.target().avatar
+  avatar.position.copy(options.state.player.position)
+  avatar.rotation.copy(options.state.player.rotation)
+  storeState(user, game, options.name, options.seed)
+}
+
+function saveRegion(buffer, userName, worldName, regionX, regionZ, cb) {
   var progress = $('.progress.hidden')
   progress.removeClass('hidden')
   var progressBar = progress.find('.bar')

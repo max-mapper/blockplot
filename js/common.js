@@ -23,7 +23,6 @@ module.exports = function(user) {
   
   loadWorldsList(username)
   
-  
   function openDialog() {
     Avgrund.show( "#default-popup" )
   }
@@ -34,9 +33,6 @@ module.exports = function(user) {
   
   function loadWorldsList(user) {
     var loggedIn = user !== 'anonymous'
-    var greetingText = 'Hello!'
-    if (loggedIn) greetingText = 'Hello ' + user + '+!'
-    $('.greeting').text(greetingText)
     formContainer.html($('.welcome').html())
     if (loggedIn) {
       getGravatar(function(err, url) {
@@ -79,14 +75,10 @@ module.exports = function(user) {
   }
   
   function getWorlds(cb) {
-    var worldStream = user.db.createReadStream({
-      start: username + '|worlds',
-      end: username + '|x' // todo range read module
-    })
+    var worldStream = user.db.sublevel('worlds').createValueStream()
     var sentError
     worldStream.pipe(concat(function(worlds) {
       if (!worlds) worlds = []
-      worlds = worlds.map(function(w) { return w.value })
       if (!sentError) cb(false, worlds)
     }))
     worldStream.on('error', function(err) {
@@ -115,7 +107,7 @@ module.exports = function(user) {
     var worldName = $(e.target).find('#world-name').val()
     var submit = $(e.target).find('input[type="submit"]')
     submit.hide()
-    user.db.put(username + '|worlds|' + worldName, {name: worldName}, function(err) {
+    user.db.sublevel('worlds').put(worldName, {name: worldName, published: false}, function(err) {
       if (err) return submit.show()
       window.location.href = "/world.html#" + (username !== 'anonymous' ? username : '') + '/' + worldName
       

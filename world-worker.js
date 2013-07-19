@@ -1,4 +1,7 @@
 var terrain = require('voxel-perlin-terrain')
+var leveljs = require('level-js')
+var sublevel = require('level-sublevel')
+var levelup = require('levelup')
 var voxelLevel = require('voxel-level')
 var bundle = require('voxel-bundle')
 var blockInfo = require('minecraft-blockinfo')
@@ -28,9 +31,13 @@ function loadChunk(worldName, position, gameChunkSize, seed) {
 }
 
 self.onmessage = function(event) {
-  if (!level) return level = voxelLevel(event.data.loadDB, function() {
-    self.postMessage({ready: true})
-  })
   var data = event.data
+  if (data.dbName) {
+    level = voxelLevel(sublevel(levelup(data.dbName, {
+      db: leveljs,
+      valueEncoding: 'json'
+    })))
+    return self.postMessage({ready: true})
+  }
   loadChunk(data.worldName, data.position, data.gameChunkSize, data.seed)
 }

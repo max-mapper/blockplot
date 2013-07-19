@@ -4,7 +4,7 @@
   "subdomain": "blockplot",
   "dependencies": {
     "gravatar": "~1.0.6",
-    "voxel-level": "1.0.0",
+    "voxel-level": "2.0.0",
     "voxel-bundle": "0.0.0",
     "voxel-walk": "git://github.com/flyswatter/voxel-walk.git",
     "minecraft-blockinfo": "~0.3.0",

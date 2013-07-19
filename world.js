@@ -11,9 +11,8 @@ user.getSession(function(err, session) {
 
 function beginLoadingWorld(user) {
   var voxelUtils = require('./js/voxel')
-  var voxelLevel = require('voxel-level')
   window.voxelUtils = voxelUtils
-  var level, worldName, userName
+  var worldName, userName
 
   $(document)
     .on('click', '#scratch', createNewWorld)
@@ -36,10 +35,8 @@ function beginLoadingWorld(user) {
     worldName = names[1]
   }
 
-  level = voxelLevel('blocks', function ready() {
-    if (user.session) route()
-    else notLoggedIn()
-  })
+  if (user.session) route()
+  else notLoggedIn()
 
   function showImportPopup(e) {
     e.preventDefault()
@@ -47,7 +44,11 @@ function beginLoadingWorld(user) {
   }
 
   function createNewWorld(e) {
-    voxelUtils.initGame({ worldName: userName + '/' + worldName, seed: 'foo' })
+    var opts = { name: worldName, seed: 'foo', published: false }
+    user.db.sublevel('worlds').put(worldName, opts, function(err) {
+      if (err) return console.err(err)
+      voxelUtils.initGame(user, opts)
+    })
     e.preventDefault()
   }
 
@@ -55,42 +56,23 @@ function beginLoadingWorld(user) {
     container.html($('.newWorld').html())
   }
 
-  function loadWorld(user, id, seed) {
-    // verify that there is world data to load
-    var levelName = user + '/' + id
-    var iter = level.db.iterator({ start: levelName, limit: 1 })
-    iter.next(function (err, key, value) {
-      if (!err && !key && !value) return
-      iter.end(function(){
-        if (err || !key || key.indexOf(levelName) < 0 ) {
-          newWorld()
-          return
-        }
-        voxelUtils.initGame({ worldName: levelName, seed: seed })
-      })
+  function loadWorld(user, worldName, seed) {
+    user.db.sublevel('worlds').get(worldName, { asBuffer: false }, function(err, data) {
+      if (err || !data || !data.state) return newWorld()
+      voxelUtils.initGame(user, data)
     })
   }
-
-  function getWorlds(cb) {
-    console.log('getWorlds NOT IMPLEMENTED')
-    // hoodie.store.findAll('world')
-    //   .done(function (objects) {
-    //     if (objects.length === 0) return cb(false, [])
-    //     cb(false, objects)
-    //   })
-    //   .fail(cb)
-  }
-
+  
   function notLoggedIn() {
     container.html($('.notLoggedIn').html())
   }
 
   function route() {
     if (worldName) title.text(userName + ' / ' + worldName)
-    loadWorld(userName, worldName)
+    loadWorld(user, worldName)
   }
 
-  // hoodie.account.on('signin signout', function() {
+  // on('signin signout', function() {
   //     try { Avgrund.hide() } catch(e){ }
   //     if (hoodie.account.username) route()
   //     else notLoggedIn()
@@ -102,12 +84,11 @@ function beginLoadingWorld(user) {
     var parts = file.name.split('.')
     if (parts[0] !== 'r' && parts[3] !== 'mca') return
     var reader = new FileReader()
-    var levelName = userName + '/' + worldName
     reader.onloadend = function() {
-      voxelUtils.saveRegion(reader.result, levelName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
+      voxelUtils.saveRegion(reader.result, userName, worldName, parseInt(parts[1]), parseInt(parts[2]), function(errs) {
         if (errs) console.log(errs)
         try { Avgrund.hide() } catch(e){ }
-        if (typeof game === 'undefined') voxelUtils.initGame({ worldName: levelName })
+        if (typeof game === 'undefined') voxelUtils.initGame(user, { userName: userName, worldName: worldName })
       })
     }
     reader.readAsArrayBuffer(file)
