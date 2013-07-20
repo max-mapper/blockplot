@@ -63,8 +63,8 @@ function initGame(user, options) {
     chunkDistance: 4,
     arrayType: Uint8Array,
     worldOrigin: pos,
-    materials: colors,
-    materialFlatColor: true
+    materials: materials,
+    materialFlatColor: false
   })
 
   window.game = game // for console debugging

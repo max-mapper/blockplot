@@ -11,6 +11,7 @@ module.exports = function(user) {
     .on('click', '.upload-world', openDialog)
     .on('click', '.new-world', openDialog)
     .on('click', '.open-menu', openDialog)
+    .on('click', '.menu-buttons .worlds', openWorldsList)
     .on('click', '.open-login', user.persona.identify.bind(user.persona))
     .on('click', '.show-login', showLogin)
     .on('click', '.logout', logout)
@@ -30,8 +31,15 @@ module.exports = function(user) {
   function closeDialog() {
     Avgrund.hide()
   }
+
+  function openWorldsList() {
+    loadWorldsList(username, function() {
+      Avgrund.show( "#default-popup" )
+    })
+  }
   
-  function loadWorldsList(user) {
+  function loadWorldsList(user, cb) {
+    if (!cb) cb = function noop (){}
     var loggedIn = user !== 'anonymous'
     formContainer.html($('.welcome').html())
     if (loggedIn) {
@@ -41,15 +49,22 @@ module.exports = function(user) {
       })
     }
     getWorlds(function(err, worlds) {
-      if (err) return
+      if (err) return console.err(err)
       var content = $('.demo-browser-content')
       var title = "Your Worlds"
       if (loggedIn) title = user + "'s Worlds"
       content.html("<h3>" + title + "</h3>")
+      var itemHTML = $('.world-item').html()
       if (worlds.length === 0) content.html("You haven't created any worlds yet!")
       worlds.map(function(world) {
-        content.append('<p><a href="/world.html#' + (loggedIn ? user : '') + '/' + world.name + '">' + world.name + '</a></p>')
+        content.append(itemHTML)
+        content.find('a:last')
+          .attr('href', '/world.html#' + (loggedIn ? user : '') + '/' + world.name)
+          .click(function() { setTimeout(function() { window.location.reload() }, 100) }) // ugh
+        content.find('dt:last').html(world.name)
+        content.find('dd:last').text(world.published ? "Published": "Unpublished")
       })
+      cb()
     })
   }
 

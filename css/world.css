@@ -6,15 +6,19 @@ body { background: none; }
 #import-popup p { margin: 10px 0; }
 .file-select { width: 300px; }
 .title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; }
-.settings {
+.settings, .worlds {
   display: block;
+  margin-left: 5px;
   width: 40px;
   height: 40px;
-  background: url(/img/settings-round.png) no-repeat 0 0;
   background-size: 40px;
+  background-repeat: no-repeat;
 }
 
-.settings:hover, .settings:active { 
+.settings { background-image: url(/img/settings-round.png); }
+.worlds { background-image: url(/img/world-round.png); }
+
+.settings:hover, .settings:active, .worlds:hover, .worlds:active { 
   -webkit-animation: rotating 2s linear infinite;
 }
 

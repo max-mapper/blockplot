@@ -17,6 +17,7 @@ function beginLoadingWorld(user) {
   $(document)
     .on('click', '#scratch', createNewWorld)
     .on('click', '#import', showImportPopup)
+    .on('click', '.menu-buttons .settings', openSettings)
     .on('change', '#file', handleFileSelect)
 
   var container = $('.content')
@@ -38,6 +39,13 @@ function beginLoadingWorld(user) {
   if (user.session) route()
   else notLoggedIn()
 
+  function openSettings() {
+    user.db.sublevel('worlds').get(worldName, function(err, world) {
+      $('#settings-popup').html(JSON.stringify(world))
+      Avgrund.show( "#settings-popup" )
+    })
+  }
+  
   function showImportPopup(e) {
     e.preventDefault()
     Avgrund.show('#import-popup')
