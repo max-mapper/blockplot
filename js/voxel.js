@@ -70,6 +70,8 @@ function initGame(user, options) {
   window.game = game // for console debugging
   var target = game.controls.target()
   
+  game.view.renderer.setClearColorHex( 0xBFD9EA, 1 )
+  
   var level = voxelLevel(user.db)
 
   var worldWorker = workerstream('world-worker-bundle.js')
