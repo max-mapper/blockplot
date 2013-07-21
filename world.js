@@ -41,7 +41,10 @@ function beginLoadingWorld(user) {
 
   function openSettings() {
     user.db.sublevel('worlds').get(worldName, function(err, world) {
-      $('#settings-popup').html(JSON.stringify(world))
+      var settings = $('#settings-popup')
+      settings.find('h3').text(worldName)
+      settings.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
+      settings.find('.btn span').text(world.published ? 'Unpublish': 'Publish')
       Avgrund.show( "#settings-popup" )
     })
   }
