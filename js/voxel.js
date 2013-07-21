@@ -37,7 +37,7 @@ function storeState(user, game, worldName, seed, cb) {
 
 function initGame(user, options) {
   $('.content').hide()
-
+  
   var textures = "http://commondatastorage.googleapis.com/voxeltextures/painterly/"
 
   var materials = []
@@ -58,13 +58,13 @@ function initGame(user, options) {
   var game = createGame({
     generateChunks: false,
     texturePath: textures,
-    playerSkin: textures + '../player.png',
+    playerSkin: options.playerSkin || textures + '../player.png',
     chunkSize: gameChunkSize,
     chunkDistance: 4,
     arrayType: Uint8Array,
     worldOrigin: pos,
-    materials: materials,
-    materialFlatColor: false
+    materials: options.textures ? materials : colors,
+    materialFlatColor: options.textures ? false : true
   })
 
   window.game = game // for console debugging

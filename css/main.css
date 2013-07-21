@@ -83,6 +83,18 @@ body {
 aside { visibility: hidden; display: none; }
 .default-popup { position: absolute !important; overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
 .avgrund-popup { position: absolute; }
+
+.world-image {
+  display: block;
+  width: 40px;
+  height: 40px;
+  float: left;
+  background-image: url('/img/world.png');
+  margin-right: 10px;
+}
+.world-info {
+  float: left;
+}
 .playground .nav-tabs {
   margin: 0;
 }
@@ -152,7 +164,7 @@ aside { visibility: hidden; display: none; }
 
 .attributions { font-size: 11px; margin-top: 30px; }
 
-.world-item-link:hover .palette { 
+.world-item-link:hover .palette, .world-item-link:active .palette { 
   background-color: #3498db;
 }
 
