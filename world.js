@@ -1,7 +1,7 @@
 var loadUser = require('./user')
 var commonStuff = require('./js/common')
 
-var user = loadUser({dbName: 'blocks'})
+var user = loadUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
 
 user.getSession(function(err, session) {
   user.session = session
@@ -13,11 +13,13 @@ function beginLoadingWorld(user) {
   var voxelUtils = require('./js/voxel')
   window.voxelUtils = voxelUtils
   var worldName, userName
+  var worldsDB = user.db.sublevel('worlds')
 
   $(document)
     .on('click', '#scratch', createNewWorld)
     .on('click', '#import', showImportPopup)
     .on('click', '.menu-buttons .settings', openSettings)
+    .on('click', '.toggle-publish', togglePublish)
     .on('change', '#file', handleFileSelect)
 
   var container = $('.content')
@@ -40,13 +42,56 @@ function beginLoadingWorld(user) {
   else notLoggedIn()
 
   function openSettings() {
-    user.db.sublevel('worlds').get(worldName, function(err, world) {
+    worldsDB.get(worldName, function(err, world) {
       var settings = $('#settings-popup')
       settings.find('h3').text(worldName)
       settings.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
-      settings.find('.btn span').text(world.published ? 'Unpublish': 'Publish')
+      
+      var iframe = document.createElement('iframe')
+      iframe.seamless = 'seamless'
+      iframe.src = user.options.baseURL
+      settings[0].appendChild(iframe)
+
+      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent"
+      var eventer = window[eventMethod]
+      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message"
+      
+      eventer(messageEvent, function (e) {
+        if (!e.data) return
+        try { var data = JSON.parse(e.data) }
+        catch (e) { var data = {} }
+        if ( !data.login) return
+        settings[0].removeChild(iframe)
+        settings.find('.state').text('State: Publishing...')
+        var sync = user.sync(world.name)
+        sync.on('data', function(c) {
+          console.log('stream', new Int8Array(c))
+        })
+        sync.on('error', function(e) {
+          console.log('sync err', e, e.message)
+        })
+        sync.on('end', function() {
+          console.log('sync closed')
+        })
+      }, false)
+      
       Avgrund.show( "#settings-popup" )
     })
+  }
+  
+  function togglePublish() {
+    worldsDB.get(worldName, function(err, world) {
+      if (world.published) unpublishWorld(world)
+      else publishWorld(world)
+    })
+  }
+  
+  function publishWorld(world) {
+    
+  }
+  
+  function unpublishWorld(world) {
+    
   }
   
   function showImportPopup(e) {
@@ -56,7 +101,7 @@ function beginLoadingWorld(user) {
 
   function createNewWorld(e) {
     var opts = { name: worldName, seed: 'foo', published: false }
-    user.db.sublevel('worlds').put(worldName, opts, function(err) {
+    worldsDB.put(worldName, opts, function(err) {
       if (err) return console.err(err)
       voxelUtils.initGame(user, opts)
     })
@@ -68,7 +113,7 @@ function beginLoadingWorld(user) {
   }
 
   function loadWorld(user, worldName, seed) {
-    user.db.sublevel('worlds').get(worldName, { asBuffer: false }, function(err, data) {
+    worldsDB.get(worldName, { asBuffer: false }, function(err, data) {
       if (err || !data || !data.state) return newWorld()
       voxelUtils.initGame(user, data)
     })
