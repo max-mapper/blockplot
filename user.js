@@ -2,7 +2,7 @@ var levelup = require('levelup')
 var leveljs = require('level-js')
 var websocket = require('websocket-stream')
 var sublevel = require('level-sublevel')
-var replicate = require('level-replicate/msgpack')
+var multilevel = require('multilevel')
 var createPersona = require('persona-id')
 var request = require('browser-request')
 
@@ -35,11 +35,19 @@ User.prototype.getSession = function(cb) {
   })
 }
 
-User.prototype.sync = function(worldName) {
+// User.prototype.sync = function(worldName) {
+  // var backend = this.options.baseURL.replace('http:', 'ws:') + '/' + worldName
+  // var stream = websocket(backend)
+  // var db = this.db.sublevel(worldName)
+//   var replicator = replicate(db, 'master', "MASTER-1")
+//   stream.pipe(replicator.createStream({tail: true})).pipe(stream)
+//   return stream
+// }
+
+User.prototype.remoteWorld = function(worldName) {
   var backend = this.options.baseURL.replace('http:', 'ws:') + '/' + worldName
   var stream = websocket(backend)
-  var db = this.db.sublevel(worldName)
-  var replicator = replicate(db, 'master', "MASTER-1")
-  stream.pipe(replicator.createStream({tail: true})).pipe(stream)
-  return stream
+  var db = multilevel.client()
+  stream.pipe(db.createRpcStream()).pipe(stream)
+  return db
 }

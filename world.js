@@ -63,16 +63,9 @@ function beginLoadingWorld(user) {
         if ( !data.login) return
         settings[0].removeChild(iframe)
         settings.find('.state').text('State: Publishing...')
-        var sync = user.sync(world.name)
-        sync.on('data', function(c) {
-          console.log('stream', new Int8Array(c))
-        })
-        sync.on('error', function(e) {
-          console.log('sync err', e, e.message)
-        })
-        sync.on('end', function() {
-          console.log('sync closed')
-        })
+        var remote = user.remoteWorld(world.name)
+        // var sync = user.sync(world.name)
+        window.remote = remote
       }, false)
       
       Avgrund.show( "#settings-popup" )
