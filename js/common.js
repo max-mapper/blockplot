@@ -49,7 +49,7 @@ module.exports = function(user) {
       })
     }
     getWorlds(function(err, worlds) {
-      if (err) return console.err(err)
+      if (err) return console.error(err)
       var content = $('.demo-browser-content')
       var title = "Your Worlds"
       if (loggedIn) title = user + "'s Worlds"

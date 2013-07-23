@@ -34,8 +34,7 @@ self.onmessage = function(event) {
   var data = event.data
   if (data.dbName) {
     level = voxelLevel(sublevel(levelup(data.dbName, {
-      db: leveljs,
-      valueEncoding: 'json'
+      db: leveljs
     })))
     return self.postMessage({ready: true})
   }

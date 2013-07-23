@@ -27,7 +27,7 @@ function storeState(user, game, worldName, seed, cb) {
   return setInterval(function() {
     var state = getState(game)
     var worlds = user.db.sublevel('worlds')
-    worlds.get(worldName, function(err, world) {
+    worlds.get(worldName, {valueEncoding: 'json'}, function(err, world) {
       world.state = state
       if (seed) world.seed = seed
       worlds.put(worldName, world, cb)

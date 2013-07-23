@@ -4,23 +4,24 @@
   "subdomain": "blockplot",
   "dependencies": {
     "gravatar": "~1.0.6",
-    "voxel-level": "2.0.0",
-    "voxel-bundle": "0.0.0",
+    "voxel-level": "~2.0.0",
+    "voxel-bundle": "~0.0.0",
     "voxel-walk": "git://github.com/flyswatter/voxel-walk.git",
     "minecraft-blockinfo": "~0.3.0",
     "voxel-hello-world": "~0.6.0",
     "voxel-fly": "~0.1.0",
     "mca2js": "~0.2.0",
-    "hoodie": "0.1.28",
     "workerstream": "~1.0.0",
     "browser-request": "~0.2.1",
-    "levelup": "0.11.0",
-    "level-js": "1.0.7",
-    "level-sublevel": "4.7.1",
-    "persona-id": "0.0.3",
-    "concat-stream": "1.0.0",
+    "levelup": "~0.11.0",
+    "level-js": "~1.0.7",
+    "level-sublevel": "~4.7.1",
+    "persona-id": "~0.0.3",
+    "concat-stream": "~1.0.0",
     "level-replicate": "~1.1.3",
-    "voxel-perlin-terrain": "~1.0.0"
+    "voxel-perlin-terrain": "~1.0.0",
+    "doorknob": "~0.3.0",
+    "auth-socket": "~0.2.0"
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js user.js:user-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast --noparse=three",
@@ -28,7 +29,7 @@
     "build": "browserify main.js -o index-bundle.js && browserify user.js -o user-bundle.js && browserify world.js -o world-bundle.js  && browserify convert-worker.js -o convert-worker-bundle.js && browserify world-worker.js -o world-worker-bundle.js"
   },
   "engines": {
-    "node": "0.8.x"
+    "node": ">=0.10.x"
   },
   "devDependencies": {
     "beefy": "~0.4.0",
