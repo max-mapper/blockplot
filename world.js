@@ -1,7 +1,7 @@
-var loadUser = require('./user')
+var levelUser = require('level-user')
 var commonStuff = require('./js/common')
 
-var user = loadUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
+var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
 window.user = user
 
 user.getSession(function(err, session) {
