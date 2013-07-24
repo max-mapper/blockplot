@@ -64,7 +64,8 @@ function initGame(user, options) {
     arrayType: Uint8Array,
     worldOrigin: pos,
     materials: options.textures ? materials : colors,
-    materialFlatColor: options.textures ? false : true
+    materialFlatColor: options.textures ? false : true,
+    controls: { jumpTimer: 3 }
   })
 
   window.game = game // for console debugging
@@ -93,7 +94,6 @@ function initGame(user, options) {
 
 function startGame(game, user, level, options, worldWorker) {
   options.state = options.state || {}
-  
   game.voxels.on('missingChunk', function(p) {
     worldWorker.write({
       worldName: options.name,
