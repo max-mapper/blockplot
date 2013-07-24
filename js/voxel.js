@@ -109,7 +109,7 @@ function startGame(game, user, level, options, worldWorker) {
       voxels: chunk.voxels,
       dimensions: chunk.dimensions
     }
-    level.store(options.name, storableChunk, function afterStore(err) {
+    level.store(options.id, storableChunk, function afterStore(err) {
       if (err) console.error('chunk store error', err)
     })
   })

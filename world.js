@@ -129,12 +129,6 @@ function beginLoadingWorld(user) {
     container.html($('.notLoggedIn').html())
   }
 
-  // on('signin signout', function() {
-  //     try { Avgrund.hide() } catch(e){ }
-  //     if (hoodie.account.username) route()
-  //     else notLoggedIn()
-  //   })
-
   function handleFileSelect(evt) {
     var files = evt.target.files
     var file = files[0]
