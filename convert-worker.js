@@ -3,7 +3,7 @@ var leveljs = require('level-js')
 var sublevel = require('level-sublevel')
 var levelup = require('levelup')
 var voxelLevel = require('voxel-level')
-var regionX, regionZ, worldName
+var regionX, regionZ, worldID
 window = self
 console = {log: function(msg) { self.postMessage({log: msg}) }}
 function convert(buffer, X, Z) {
@@ -22,7 +22,7 @@ function convert(buffer, X, Z) {
       self.postMessage({ progress: percent })
       progress = percent
     }
-    level.store(worldName, chunk, function afterStore(err) {
+    level.store(worldID, chunk, function afterStore(err) {
       if (err) errors[key] = err
       pending--
       if (done && pending === 0) {
@@ -42,7 +42,7 @@ self.onmessage = function(event) {
   var keys = Object.keys(data)
   if (keys.indexOf('regionX') > -1) regionX = data.regionX
   if (keys.indexOf('regionZ') > -1) regionZ = data.regionZ
-  if (keys.indexOf('worldName') > -1) worldName = data.worldName
+  if (keys.indexOf('worldID') > -1) worldID = data.worldID
   if (data instanceof ArrayBuffer) {
     convert(data, regionX, regionZ)
   }

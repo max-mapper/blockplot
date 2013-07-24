@@ -22,15 +22,15 @@ function getState(game) {
   return state
 }
 
-function storeState(user, game, worldName, seed, cb) {
+function storeState(user, game, worldID, seed, cb) {
   if (!cb) cb = function noop(){}
   return setInterval(function() {
     var state = getState(game)
     var worlds = user.db.sublevel('worlds')
-    worlds.get(worldName, {valueEncoding: 'json'}, function(err, world) {
+    worlds.get(worldID, {valueEncoding: 'json'}, function(err, world) {
       world.state = state
       if (seed) world.seed = seed
-      worlds.put(worldName, world, cb)
+      worlds.put(worldID, world, cb)
     })
   }, 5000)
 }
@@ -67,10 +67,10 @@ function initGame(user, options) {
     materialFlatColor: options.textures ? false : true,
     controls: { jumpTimer: 3 }
   })
-
+  
   window.game = game // for console debugging
   var target = game.controls.target()
-  
+
   game.view.renderer.setClearColorHex( 0xBFD9EA, 1 )
   
   var level = voxelLevel(user.db)
@@ -96,7 +96,7 @@ function startGame(game, user, level, options, worldWorker) {
   options.state = options.state || {}
   game.voxels.on('missingChunk', function(p) {
     worldWorker.write({
-      worldName: options.name,
+      worldID: options.id,
       position: p,
       gameChunkSize: game.chunkSize,
       seed: options.seed
@@ -124,10 +124,10 @@ function startGame(game, user, level, options, worldWorker) {
   var avatar = game.controls.target().avatar
   avatar.position.copy(options.state.player.position)
   avatar.rotation.copy(options.state.player.rotation)
-  storeState(user, game, options.name, options.seed)
+  storeState(user, game, options.id, options.seed)
 }
 
-function saveRegion(buffer, userName, worldName, regionX, regionZ, cb) {
+function saveRegion(buffer, worldID, regionX, regionZ, cb) {
   var progress = $('.progress.hidden')
   progress.removeClass('hidden')
   var progressBar = progress.find('.bar')
@@ -144,7 +144,7 @@ function saveRegion(buffer, userName, worldName, regionX, regionZ, cb) {
     }
   })
   worker.on('error', function(e) { console.log('err', e)})
-  worker.write({worldName: worldName, regionX: regionX, regionZ: regionZ})
+  worker.write({worldID: worldID, regionX: regionX, regionZ: regionZ})
   worker.write(buffer, [buffer])
   worker.end()
 }

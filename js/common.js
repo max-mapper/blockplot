@@ -1,5 +1,6 @@
 var gravatar = require('gravatar')
 var concat = require('concat-stream')
+var hat = require('hat')
 
 module.exports = function(user) {
   var username = 'anonymous'
@@ -59,7 +60,7 @@ module.exports = function(user) {
       worlds.map(function(world) {
         content.append(itemHTML)
         content.find('a:last')
-          .attr('href', '/world.html#' + (loggedIn ? user : '') + '/' + world.name)
+          .attr('href', '/world.html#' + world.id)
           .click(function() { setTimeout(function() { window.location.reload() }, 100) }) // ugh
         content.find('dt:last').html(world.name)
         content.find('dd:last').text(world.published ? "Published": "Unpublished")
@@ -122,9 +123,11 @@ module.exports = function(user) {
     var worldName = $(e.target).find('#world-name').val()
     var submit = $(e.target).find('input[type="submit"]')
     submit.hide()
-    user.db.sublevel('worlds').put(worldName, {name: worldName, published: false}, function(err) {
+    var uuid = hat()
+    var world = {id: uuid, name: worldName, published: false}
+    user.db.sublevel('worlds').put(uuid, world, function(err) {
       if (err) return submit.show()
-      window.location.href = "/world.html#" + (username !== 'anonymous' ? username : '') + '/' + worldName
+      window.location.href = "/world.html#" + uuid
       
       // apparently setting href and triggering reload isn't synchronous!???
       // so I wait for 1 second before forcing it

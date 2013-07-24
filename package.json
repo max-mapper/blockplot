@@ -14,7 +14,8 @@
     "workerstream": "~1.0.0",
     "browser-request": "git://github.com/maxogden/browser-request.git",
     "concat-stream": "~1.0.0",
-    "voxel-perlin-terrain": "~1.0.0"
+    "voxel-perlin-terrain": "~1.0.0",
+    "hat": "0.0.3"
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js user.js:user-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast --noparse=three",

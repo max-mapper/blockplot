@@ -13,7 +13,7 @@ user.getSession(function(err, session) {
 function beginLoadingWorld(user) {
   var voxelUtils = require('./js/voxel')
   window.voxelUtils = voxelUtils
-  var worldName, userName
+  var worldID, userName
   var worldsDB = user.db.sublevel('worlds')
 
   $(document)
@@ -27,27 +27,35 @@ function beginLoadingWorld(user) {
   var title = $('.title')
 
   var hash = window.location.hash
-  if (hash.length < 2) worldName = false
-  else hash = hash.substr(1, hash.length - 1)
+  worldID = hash.substr(1, hash.length - 1)
 
-  var names = hash.split('/')
-  if (names.length < 2) {
-    return document.location.href = "/"
-    worldName = false
-  } else {
-    userName = names[0] || 'anonymous'
-    worldName = names[1]
+  loadWorld(user, worldID)
+  
+  function loadWorld(user, worldID, seed) {
+    worldsDB.get(worldID, { asBuffer: false }, function(err, data) {
+      if (data && data.name) title.text(data.name)
+      if (err || !data || !data.state) {
+        var remote = user.remote('worlds')
+        remote.get(worldID, {valueEncoding: 'json'}, function(err, world) {
+          if (err || !world) return newWorld()
+          var local = user.db.sublevel('worlds')
+          local.put(world.id, world, {valueEncoding: 'json'}, function(err) {
+            if (err) console.error('local world save err', err)
+            user.copy(user.remote(worldID), user.db.sublevel(worldID), function() {
+              voxelUtils.initGame(user, world)
+            })
+          })
+        })
+      } else {
+        voxelUtils.initGame(user, data)
+      }
+    })
   }
-
-  // if (user.session && user.session.email) route()
-  // else notLoggedIn()
-
-  route()
   
   function openSettings() {
-    worldsDB.get(worldName, function(err, world) {
+    worldsDB.get(worldID, function(err, world) {
       var settings = $('#settings-popup')
-      settings.find('h3').text(worldName)
+      settings.find('h3').text(world.name)
       settings.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
       
       var iframe = document.createElement('iframe')
@@ -66,9 +74,9 @@ function beginLoadingWorld(user) {
         if ( !data.login) return
         settings[0].removeChild(iframe)
         settings.find('.state').text('State: Publishing...')
-        var remote = user.remote(world.name)
-        var local = user.db.sublevel(world.name)
-        user.remote('worlds').put(world.name, world, {valueEncoding: 'json'}, function(err) {
+        var remote = user.remote(world.id)
+        var local = user.db.sublevel(world.id)
+        user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
           if (err) return settings.find('.state').text('error ' + err.message)
           user.copy(local, remote, function(){
             settings.find('.state').text('State: Published!')
@@ -82,7 +90,7 @@ function beginLoadingWorld(user) {
   }
   
   function togglePublish() {
-    worldsDB.get(worldName, function(err, world) {
+    worldsDB.get(worldID, function(err, world) {
       if (world.published) unpublishWorld(world)
       else publishWorld(world)
     })
@@ -102,45 +110,23 @@ function beginLoadingWorld(user) {
   }
 
   function createNewWorld(e) {
-    var opts = { name: worldName, seed: 'foo', published: false }
-    worldsDB.put(worldName, opts, function(err) {
-      if (err) return console.error(err)
-      voxelUtils.initGame(user, opts)
-    })
     e.preventDefault()
+    worldsDB.get(worldID, function(err, world){
+      world.seed = 'foo'
+      worldsDB.put(worldID, world, function(err) {
+        if (err) return console.error(err)
+        voxelUtils.initGame(user, world)
+      })
+    })
+    return false
   }
 
   function newWorld() {
     container.html($('.newWorld').html())
   }
-
-  function loadWorld(user, worldName, seed) {
-    worldsDB.get(worldName, { asBuffer: false }, function(err, data) {
-      if (err || !data || !data.state) {
-        var remote = user.remote('worlds')
-        remote.get(worldName, {valueEncoding: 'json'}, function(err, world) {
-          if (err || !world) return newWorld()
-          var local = user.db.sublevel('worlds')
-          local.put(worldName, world, {valueEncoding: 'json'}, function(err) {
-            if (err) console.error('local world save err', err)
-            user.copy(user.remote(worldName), user.db.sublevel(worldName), function() {
-              voxelUtils.initGame(user, world)
-            })
-          })
-        })
-      } else {
-        voxelUtils.initGame(user, data)
-      }
-    })
-  }
   
   function notLoggedIn() {
     container.html($('.notLoggedIn').html())
-  }
-
-  function route() {
-    if (worldName) title.text(userName + ' / ' + worldName)
-    loadWorld(user, worldName)
   }
 
   // on('signin signout', function() {
@@ -158,7 +144,7 @@ function beginLoadingWorld(user) {
     var regionX = parseInt(parts[1])
     var regionZ = parseInt(parts[2])
     reader.onloadend = function() {
-      voxelUtils.saveRegion(reader.result, userName, worldName, regionX, regionZ, function(errs) {
+      voxelUtils.saveRegion(reader.result, worldID, regionX, regionZ, function(errs) {
         if (errs) console.log(errs)
         try { Avgrund.hide() } catch(e){ }
         if (typeof game === 'undefined') {
@@ -167,7 +153,7 @@ function beginLoadingWorld(user) {
             position: {x: blockPos[0], y: 65, z: blockPos[1]},
             rotation: {x: 0, y: 0, z: 0}
           }}
-          voxelUtils.initGame(user, { userName: userName, name: worldName, state: state })
+          voxelUtils.initGame(user, { id: worldID, state: state })
         }
       })
     }
