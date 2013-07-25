@@ -137,11 +137,4 @@ module.exports = function(user) {
     })
     return false
   }
-  
-  function click(el) {
-    // Simulate click on the element.
-    var evt = document.createEvent('Event')
-    evt.initEvent('click', true, true)
-    el.dispatchEvent(evt)
-  }
 }
