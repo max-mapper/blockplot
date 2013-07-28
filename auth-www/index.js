@@ -45,6 +45,7 @@ $(document)
       if (err) console.log('username save error', err)
       $('.input form').hide()
       $('.buttons').show()
+      window.parent.postMessage(JSON.stringify({ login: true }), '*')
     })
     return false
   })
@@ -76,7 +77,7 @@ $(document)
 
 persona.on('login', function (id) {
   getProfile(function(err, profile) {
-    if (profile && profile.username) return
+    if (profile && profile.username) return window.parent.postMessage(JSON.stringify({ login: true }), '*')
     $('.buttons').show()
     input = new ractive({
       el: document.querySelector('.input'),
@@ -91,7 +92,6 @@ persona.on('login', function (id) {
     text: "Log Out",
     classes: "logout btn-danger"
   })
-  window.parent.postMessage(JSON.stringify({ login: id }), '*')
 })
 
 persona.on('logout', function () {

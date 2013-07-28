@@ -63,7 +63,7 @@ function beginLoadingWorld(user) {
       info.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
       
       user.getProfile(function(err, profile) {
-        if (err || !profile || !profile.email) {
+        if (err || !profile || !profile.username) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')
         } else {
