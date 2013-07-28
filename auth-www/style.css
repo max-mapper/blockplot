@@ -1,0 +1,9 @@
+.input input { 
+  margin-top: 3px;
+}
+
+.input .span3 {
+  margin-right: 10px;
+}
+
+.input form input[type="submit"] { padding-bottom: 10px; padding-top: 11px; }

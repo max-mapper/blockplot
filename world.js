@@ -54,38 +54,72 @@ function beginLoadingWorld(user) {
   
   function openSettings() {
     worldsDB.get(worldID, function(err, world) {
+      var iframe
       var settings = $('#settings-popup')
+      var info = settings.find('.info')
+      var publish = info.find('.publish')
+      var loggedOut = info.find('.loggedOut')
       settings.find('h3').text(world.name)
-      settings.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
+      info.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
       
-      var iframe = document.createElement('iframe')
-      iframe.seamless = 'seamless'
-      iframe.src = user.options.baseURL
-      settings[0].appendChild(iframe)
+      user.getSession(function(err, profile) {
+        if (err || !profile || !profile.email) {
+          loggedOut.removeClass('hidden')
+          publish.addClass('hidden')
+        } else {
+          publish.removeClass('hidden')
+          loggedOut.addClass('hidden')
+        }
+      })
+      
+      function showIframe() {
+        iframe = document.createElement('iframe')
+        iframe.seamless = 'seamless'
+        iframe.src = user.options.baseURL
+        settings[0].appendChild(iframe)
+      }
+      
+      showIframe()
 
       var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent"
       var eventer = window[eventMethod]
       var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message"
       
       eventer(messageEvent, function (e) {
+        if (e.data && e.data === 'process-tick') return
         if (!e.data) return
         try { var data = JSON.parse(e.data) }
         catch (e) { var data = {} }
-        if ( !data.login) return
         settings[0].removeChild(iframe)
-        settings.find('.state').text('State: Publishing...')
-        var remote = user.remote(world.id)
-        var local = user.db.sublevel(world.id)
-        user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
-          if (err) return settings.find('.state').text('error ' + err.message)
-          user.copy(local, remote, function(){
-            settings.find('.state').text('State: Published!')
-          })
-        })
-        // var sync = user.sync(world.name)
+        showIframe()
+        if ( !data.login) {
+          loggedOut.removeClass('hidden')
+          publish.addClass('hidden')
+        } else {
+          publish.removeClass('hidden')
+          loggedOut.addClass('hidden')
+        }
       }, false)
       
+      publish.click(function(e) {
+        var state = settings.find('.state')
+        state.text('State: Publishing...')
+        publishWorld(world, function(err) {
+          if (err) return state.text('error ' + err.message)
+          state.text('State: Published!')
+        })
+      })
+      
       Avgrund.show( "#settings-popup" )
+    })
+  }
+  
+  function publishWorld(world, cb) {
+    var remote = user.remote(world.id)
+    var local = user.db.sublevel(world.id)
+    user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
+      if (err) return cb(err)
+      user.copy(local, remote, cb)
     })
   }
   
@@ -94,10 +128,6 @@ function beginLoadingWorld(user) {
       if (world.published) unpublishWorld(world)
       else publishWorld(world)
     })
-  }
-  
-  function publishWorld(world) {
-    
   }
   
   function unpublishWorld(world) {

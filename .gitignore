@@ -2,3 +2,4 @@
 node_modules
 *.db
 *-bundle.js
+auth-www/bundle.js
