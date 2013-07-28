@@ -4,7 +4,7 @@ var hat = require('hat')
 
 module.exports = function(user) {
   var username = 'anonymous'
-  if (user.session && user.session.email) username = user.session.email
+  if (user.profile && user.profile.email) username = user.profile.email
   
   var formContainer = $('#default-popup')
   

@@ -4,8 +4,8 @@ var commonStuff = require('./js/common')
 var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
 window.user = user
 
-user.getSession(function(err, session) {
-  user.session = session
+user.getProfile(function(err, profile) {
+  user.profile = profile
   beginLoadingWorld(user)
   commonStuff(user)
 })
@@ -62,7 +62,7 @@ function beginLoadingWorld(user) {
       settings.find('h3').text(world.name)
       info.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
       
-      user.getSession(function(err, profile) {
+      user.getProfile(function(err, profile) {
         if (err || !profile || !profile.email) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')
@@ -90,8 +90,6 @@ function beginLoadingWorld(user) {
         if (!e.data) return
         try { var data = JSON.parse(e.data) }
         catch (e) { var data = {} }
-        settings[0].removeChild(iframe)
-        showIframe()
         if ( !data.login) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')

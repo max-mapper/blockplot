@@ -1,3 +1,5 @@
+html, body { background-color: transparent; }
+
 .input input { 
   margin-top: 3px;
 }

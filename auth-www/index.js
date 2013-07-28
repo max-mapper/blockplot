@@ -49,7 +49,6 @@ $(document)
     return false
   })
   .on('blur', '.namepicker', function(e) {
-    console.log('hi')
     input.set('inputClasses', '')
   })
   .on('keyup', '.namepicker', function(e) {
