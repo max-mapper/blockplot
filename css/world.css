@@ -16,7 +16,7 @@ body { background: none; }
 }
 
 #settings-popup iframe { height: 50px; }
-#settings-popup .publish { width: 300px; }
+#settings-popup .btn { width: 300px; }
 #settings-popup .info { margin: 10px 0; }
 .settings { background-image: url(/img/settings-round.png); }
 .worlds { background-image: url(/img/world-round.png); }

@@ -20,7 +20,6 @@ function beginLoadingWorld(user) {
     .on('click', '#scratch', createNewWorld)
     .on('click', '#import', showImportPopup)
     .on('click', '.menu-buttons .settings', openSettings)
-    .on('click', '.toggle-publish', togglePublish)
     .on('change', '#file', handleFileSelect)
 
   var container = $('.content')
@@ -58,8 +57,17 @@ function beginLoadingWorld(user) {
       var settings = $('#settings-popup')
       var info = settings.find('.info')
       var publish = info.find('.publish')
+      var destroy = info.find('.destroy')
       var loggedOut = info.find('.loggedOut')
       settings.find('h3').text(world.name)
+      
+      Avgrund.show( "#settings-popup" )
+      
+      if (!world.state)  {
+        loggedOut.addClass('hidden')
+        return info.find('.state').text('No world data to publish')
+      }
+      
       info.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
       
       user.getProfile(function(err, profile) {
@@ -67,12 +75,14 @@ function beginLoadingWorld(user) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')
         } else {
+          destroy.removeClass('hidden')
           publish.removeClass('hidden')
           loggedOut.addClass('hidden')
         }
       })
       
       function showIframe() {
+        settings.find('iframe').remove()
         iframe = document.createElement('iframe')
         iframe.seamless = 'seamless'
         iframe.src = user.options.baseURL
@@ -94,6 +104,7 @@ function beginLoadingWorld(user) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')
         } else {
+          destroy.removeClass('hidden')
           publish.removeClass('hidden')
           loggedOut.addClass('hidden')
         }
@@ -108,28 +119,36 @@ function beginLoadingWorld(user) {
         })
       })
       
-      Avgrund.show( "#settings-popup" )
+      destroy.click(function(e) {
+        var state = settings.find('.state')
+        state.text('State: Destroying...')
+        destroyWorld(world, function(err) {
+          if (err) return state.text('error ' + err.message)
+          state.text('State: Destroyed!!')
+          window.location.href = "/"
+        })
+      })
+      
     })
   }
   
   function publishWorld(world, cb) {
     var remote = user.remote(world.id)
     var local = user.db.sublevel(world.id)
+    world.published = true
     user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
       if (err) return cb(err)
       user.copy(local, remote, cb)
     })
   }
-  
-  function togglePublish() {
-    worldsDB.get(worldID, function(err, world) {
-      if (world.published) unpublishWorld(world)
-      else publishWorld(world)
-    })
-  }
-  
-  function unpublishWorld(world) {
     
+  function destroyWorld(world, cb ) {
+    var worlds = user.db.sublevel('worlds')
+    worlds.del(world.id, function(err) {
+      user.remote('worlds').del(world.id, function(err) {
+        cb(false)
+      })
+    })
   }
   
   function showImportPopup(e) {
