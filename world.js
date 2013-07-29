@@ -143,12 +143,28 @@ function beginLoadingWorld(user) {
       })
     })
   }
-    
+  
   function destroyWorld(world, cb ) {
-    var worlds = user.db.sublevel('worlds')
-    worlds.del(world.id, function(err) {
-      user.remote('worlds').del(world.id, function(err) {
-        cb(false)
+    var remote = user.remote('worlds')
+    var local = user.db.sublevel('worlds')
+    var pending = 3
+    var errors = []
+    user.destroy(local, function(err) {
+      if (err) errors.push(err)
+      pending--
+      if (!pending) cb(errors.length ? errors : undefined)
+    })
+    user.destroy(remote, function(err) {
+      if (err) errors.push(err)
+      pending--
+      if (!pending) cb(errors.length ? errors : undefined)
+    })
+    local.del(world.id, function(err) {
+      if (err) errors.push(err)
+      remote.del(world.id, function(err) {
+        if (err) errors.push(err)
+        pending--
+        if (!pending) cb(errors.length ? errors : undefined)
       })
     })
   }
