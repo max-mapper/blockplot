@@ -136,9 +136,11 @@ function beginLoadingWorld(user) {
     var remote = user.remote(world.id)
     var local = user.db.sublevel(world.id)
     world.published = true
-    user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
-      if (err) return cb(err)
-      user.copy(local, remote, cb)
+    user.db.sublevel('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
+      user.remote('worlds').put(world.id, world, {valueEncoding: 'json'}, function(err) {
+        if (err) return cb(err)
+        user.copy(local, remote, cb)
+      })
     })
   }
     
