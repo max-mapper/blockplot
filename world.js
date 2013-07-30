@@ -41,11 +41,13 @@ function beginLoadingWorld(user) {
           local.put(world.id, world, {valueEncoding: 'json'}, function(err) {
             if (err) console.error('local world save err', err)
             user.copy(user.remote(worldID), user.db.sublevel(worldID), function() {
+              $('.page-loading').addClass('hidden')
               voxelUtils.initGame(user, world)
             })
           })
         })
       } else {
+        $('.page-loading').addClass('hidden')
         voxelUtils.initGame(user, data)
       }
     })
@@ -188,7 +190,7 @@ function beginLoadingWorld(user) {
     e.preventDefault()
     worldsDB.get(worldID, function(err, world){
       world.seed = 'foo'
-      worldsDB.put(worldID, world, function(err) {
+      worldsDB.put(worldID, world, {valueEncoding: 'json'},function(err) {
         if (err) return console.error(err)
         voxelUtils.initGame(user, world)
       })
@@ -197,6 +199,7 @@ function beginLoadingWorld(user) {
   }
 
   function newWorld() {
+    $('.page-loading').addClass('hidden')
     container.html($('.newWorld').html())
   }
   
