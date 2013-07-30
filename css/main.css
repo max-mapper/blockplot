@@ -83,7 +83,7 @@ body {
 aside { visibility: hidden; display: none; }
 .default-popup { position: absolute !important; overflow: auto; max-height: 473px !important; top: 10% !important; margin: 0 0 0 -454px !important; margin-top: 0 !important; }
 .avgrund-popup { position: absolute; }
-
+.hidden { visibility: hidden; }
 .world-image {
   display: block;
   width: 40px;
