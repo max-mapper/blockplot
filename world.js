@@ -138,9 +138,9 @@ function beginLoadingWorld(user) {
     var remote = user.remote(world.id)
     var local = user.db.sublevel(world.id)
     world.published = true
-    var remote = user.db.sublevel('worlds')
+    var worlds = user.db.sublevel('worlds')
     var opts = {valueEncoding: 'json'}
-    user.db.sublevel('worlds').put(world.id, world, opts, function(err) {
+    worlds.put(world.id, world, opts, function(err) {
       user.remote('worlds').put(world.id, world, opts, function(err) {
         var email = user.profile.email
         user.remote('profiles').get(email, function(err, profile) {

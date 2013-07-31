@@ -39,9 +39,9 @@ module.exports = function(user) {
     })
   }
   
-  function loadWorldsList(user, cb) {
+  function loadWorldsList(username, cb) {
     if (!cb) cb = function noop (){}
-    var loggedIn = user !== 'anonymous'
+    var loggedIn = username !== 'anonymous'
     formContainer.html($('.welcome').html())
     if (loggedIn) {
       getGravatar(function(err, url) {
@@ -53,7 +53,7 @@ module.exports = function(user) {
       if (err) return console.error(err)
       var content = $('.demo-browser-content')
       var title = "Your Worlds"
-      if (loggedIn) title = user + "'s Worlds"
+      if (loggedIn) title = username + "'s Worlds"
       content.html("<h3>" + title + "</h3>")
       var itemHTML = $('.world-item').html()
       if (worlds.length === 0) content.html("You haven't created any worlds yet!")
@@ -90,7 +90,8 @@ module.exports = function(user) {
   }
   
   function getWorlds(cb) {
-    var worldStream = user.db.sublevel('worlds').createValueStream()
+    window.user = user
+    var worldStream = user.db.sublevel('worlds').createValueStream({ valueEncoding: 'json' })
     var sentError
     worldStream.pipe(concat(function(worlds) {
       if (!worlds) worlds = []
@@ -124,7 +125,7 @@ module.exports = function(user) {
     submit.hide()
     var uuid = hat()
     var world = {id: uuid, name: worldName, published: false}
-    user.db.sublevel('worlds').put(uuid, world, function(err) {
+    user.db.sublevel('worlds').put(uuid, world, {valueEncoding: 'json'}, function(err) {
       if (err) return submit.show()
       window.location.href = "/world.html#" + uuid
       
