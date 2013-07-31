@@ -5,7 +5,7 @@ body { background: none; }
 .hidden { display: none; }
 #import-popup p { margin: 10px 0; }
 .file-select { width: 300px; }
-.title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; }
+.world-title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; }
 .page-loading { width: 228px; height: 228px; margin: 100px auto 0 auto; }
 .settings, .worlds {
   display: block;
@@ -14,6 +14,17 @@ body { background: none; }
   height: 40px;
   background-size: 40px;
   background-repeat: no-repeat;
+}
+
+.dg.ac {
+  top: 60px !important;
+}
+
+.dg.main.a {
+  -webkit-transition: none;
+  -moz-transition: none;
+  transition: none;
+  margin-right:0 !important;
 }
 
 #settings-popup iframe { height: 50px; }

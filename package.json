@@ -19,7 +19,8 @@
     "level-socket": "0.1.0",
     "jquery-untouched": "~1.10.2",
     "ractive": "~0.3.3",
-    "level-user": "~1.0.0"
+    "level-user": "~1.0.0",
+    "voxel-debug": "~0.2.0"
   },
   "scripts": {
     "start": "beefy main.js:index-bundle.js user.js:user-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast --noparse=three",

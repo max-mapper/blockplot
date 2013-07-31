@@ -4,6 +4,8 @@ var workerstream = require('workerstream')
 var blockInfo = require('minecraft-blockinfo')
 var walk = require('voxel-walk')
 var voxelLevel = require('voxel-level')
+var createDebugger = require('voxel-debug')
+var dat = require('dat-gui')
 
 var loadDelay = 1000 // milliseconds
 
@@ -71,7 +73,10 @@ function initGame(user, options) {
   
   window.game = game // for console debugging
   var target = game.controls.target()
-
+  
+  var debug = createDebugger(game)
+  debug.gui.constructor.toggleHide()
+  
   game.view.renderer.setClearColorHex( 0xBFD9EA, 1 )
   
   var level = voxelLevel(user.db)
