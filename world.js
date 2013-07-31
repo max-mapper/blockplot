@@ -23,7 +23,7 @@ function beginLoadingWorld(user) {
     .on('change', '#file', handleFileSelect)
 
   var container = $('.content')
-  var title = $('.title')
+  var title = $('.world-title')
 
   var hash = window.location.hash
   worldID = hash.substr(1, hash.length - 1)
