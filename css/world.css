@@ -6,6 +6,7 @@ body { background: none; }
 #import-popup p { margin: 10px 0; }
 .file-select { width: 300px; }
 .world-title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; }
+.white-logo { background: url(/img/logo-white.png) no-repeat 0 0; }
 .page-loading { width: 228px; height: 228px; margin: 100px auto 0 auto; }
 .settings, .worlds {
   display: block;

@@ -20,17 +20,18 @@
     "jquery-untouched": "~1.10.2",
     "ractive": "~0.3.3",
     "level-user": "~1.0.0",
-    "voxel-debug": "~0.2.0"
+    "voxel-debug": "~0.2.0",
+    "webworkify": "0.0.0"
   },
   "scripts": {
-    "start": "beefy main.js:index-bundle.js user.js:user-bundle.js world.js:world-bundle.js convert-worker.js:convert-worker-bundle.js world-worker.js:world-worker-bundle.js --debug=false -- --fast --noparse=three",
-    "build": "browserify main.js -o index-bundle.js && browserify world.js -o world-bundle.js  && browserify convert-worker.js -o convert-worker-bundle.js && browserify world-worker.js -o world-worker-bundle.js && browserify user.js -o user-bundle.js"
+    "start": "beefy js/main.js:js/index-bundle.js js/world.js:js/world-bundle.js js/user.js:js/user-bundle.js --debug=false -- --noparse=three",
+    "build": "browserify js/main.js -o js/index-bundle.js && browserify js/world.js -o js/world-bundle.js && browserify js/user.js -o js/user-bundle.js"
   },
   "engines": {
     "node": ">=0.10.x"
   },
   "devDependencies": {
     "beefy": "~0.4.0",
-    "browserify": "~2.25.0"
+    "browserify": "~2.26.0"
   }
 }

@@ -1,5 +1,5 @@
-require('./js/parallax')()
-var Modernizr = require('./js/modernizr-pointerlock-webgl')
+require('./parallax')()
+var Modernizr = require('./modernizr-pointerlock-webgl')
 var startArea = $('.start-area')
 var missingAPIs = []
 if (!Modernizr.pointerlock) missingAPIs.push('Pointer Lock')
@@ -12,7 +12,7 @@ if (missingAPIs.length > 0) {
 startArea.removeClass('hidden')
 
 var levelUser = require('level-user')
-var commonStuff = require('./js/common')
+var commonStuff = require('./common')
 
 var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
 

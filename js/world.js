@@ -1,5 +1,5 @@
 var levelUser = require('level-user')
-var commonStuff = require('./js/common')
+var commonStuff = require('./common')
 
 var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
 window.user = user
@@ -11,7 +11,7 @@ user.getProfile(function(err, profile) {
 })
 
 function beginLoadingWorld(user) {
-  var voxelUtils = require('./js/voxel')
+  var voxelUtils = require('./voxel')
   window.voxelUtils = voxelUtils
   var worldID, userName
   var worldsDB = user.db.sublevel('worlds')
@@ -32,7 +32,7 @@ function beginLoadingWorld(user) {
   
   function loadWorld(user, worldID, seed) {
     worldsDB.get(worldID, { asBuffer: false }, function(err, data) {
-      if (data && data.name) title.text(data.name)
+      if (data && data.name) title.append(data.name)
       if (err || !data || !data.state) {
         var remote = user.remote('worlds')
         remote.get(worldID, {valueEncoding: 'json'}, function(err, world) {

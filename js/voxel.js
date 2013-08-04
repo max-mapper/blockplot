@@ -1,6 +1,7 @@
 var createGame = require('voxel-hello-world')
 var fly = require('voxel-fly')
-var workerstream = require('workerstream')
+var worker = require('webworkify')
+
 var blockInfo = require('minecraft-blockinfo')
 var walk = require('voxel-walk')
 var voxelLevel = require('voxel-level')
@@ -81,8 +82,10 @@ function initGame(user, options) {
   
   var level = voxelLevel(user.db)
 
-  var worldWorker = workerstream('world-worker-bundle.js')
-  worldWorker.on('data', function(data) {
+  var worldWorker = worker(require('./world-worker.js'))
+  worldWorker.addEventListener('message', function (ev) {
+    var data = ev.data
+    if (!data) return
     if (data.ready && game.paused) return startGame(game, user, level, options, worldWorker)
     if (data.log) return console.log(data)
     var chunk = {
@@ -93,15 +96,14 @@ function initGame(user, options) {
     setTimeout(function() {
       game.showChunk(chunk)
     }, 10 + ~~(Math.random() * loadDelay))
-  })
-  worldWorker.on('error', function(e) { console.log('err', e)})
-  worldWorker.write({ dbName: 'blocks' })
+  });
+  worldWorker.postMessage({ dbName: 'blocks' })
 }
 
 function startGame(game, user, level, options, worldWorker) {
   options.state = options.state || {}
   game.voxels.on('missingChunk', function(p) {
-    worldWorker.write({
+    worldWorker.postMessage({
       worldID: options.id,
       position: p,
       gameChunkSize: game.chunkSize,
@@ -138,8 +140,9 @@ function saveRegion(buffer, worldID, regionX, regionZ, cb) {
   progress.removeClass('hidden')
   var progressBar = progress.find('.bar')
   progressBar.css('width', '0%')
-  var worker = workerstream('convert-worker-bundle.js')
-  worker.on('data', function(data) {
+  var convertWorker = worker(require('./convert-worker.js'))
+  convertWorker.addEventListener('message', function(ev) {
+    var data = ev.data || {}
     if (data.progress) {
       progressBar.css('width', data.progress + '%')
     } else if (data.done) {
@@ -149,9 +152,7 @@ function saveRegion(buffer, worldID, regionX, regionZ, cb) {
       console.log(data)
     }
   })
-  worker.on('error', function(e) { console.log('err', e)})
-  worker.write({worldID: worldID, regionX: regionX, regionZ: regionZ})
-  worker.write(buffer, [buffer])
-  worker.end()
+  convertWorker.postMessage({worldID: worldID, regionX: regionX, regionZ: regionZ})
+  convertWorker.postMessage(buffer, [buffer])
 }
 
