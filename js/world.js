@@ -29,10 +29,11 @@ function beginLoadingWorld(user) {
   var hash = window.location.hash
   worldID = hash.substr(1, hash.length - 1)
 
-  worlds.load(user, worldID, false, function(err, world) {
+  worlds.load(worldID, false, function(err, world) {
     if (world && world.name) title.append(world.name)
     if (err && !world) return newWorld()
     $('.page-loading').addClass('hidden')
+    console.log('initgame', err, world)
     voxelUtils.initGame(user, world)
   })
   
