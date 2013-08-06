@@ -119,6 +119,7 @@ function beginLoadingWorld(user) {
   
   function showImportPopup(e) {
     e.preventDefault()
+    try { Avgrund.hide() } catch(e){ }
     Avgrund.show('#import-popup')
   }
 
