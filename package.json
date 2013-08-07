@@ -10,7 +10,7 @@
     "minecraft-blockinfo": "~0.3.0",
     "voxel-hello-world": "~0.6.0",
     "voxel-fly": "~0.1.0",
-    "mca2js": "~0.2.0",
+    "mca2js": "~1.0.0",
     "browser-request": "git://github.com/maxogden/browser-request.git",
     "concat-stream": "~1.0.0",
     "voxel-perlin-terrain": "~1.0.0",
