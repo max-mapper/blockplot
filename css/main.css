@@ -71,6 +71,7 @@ body {
   
   /* original color: #2ecc71 */
   a { color: #f2f2f2; text-decoration: none; cursor: hand !important; cursor: pointer; }
+  p a { color: #4f99c4; }
   a:hover { color: #4f99c4; text-decoration: underline; }
 
 .login-icon > h4 { color: white; }

@@ -53,16 +53,24 @@
       <p>
         <a class="btn btn-large btn-block btn-info file-select">Choose File</a>
       </p>
+      <p>
+        <code>.mca</code> files are <a href="http://www.minecraftwiki.net/wiki/Region_file_format" target="_blank">region files</a> which means they contain chunks of your world. Older <code>.mcr</code> files (from Minecraft v1.1 and below) aren't supported by BlockPlot, but if you open them in a recent Minecraft they will be converted to <code>.mca</code> files.
+      </p>
       <input class="hidden" type="file" id="file" name="file" />
-      <br/>
       <div class="well">
         <h4>Where can I find my region files?</h4>
         <dl class="dl-horizontal">
-          <dt>OSX</dt>
+          <dt>Mac OS</dt>
           <dd><code>~/Library/Application Support/minecraft/saves/[world-name]/region</code></dd>
           <dt>Windows</dt>
           <dd><code>C:\Users\[yourusernamehere]\AppData\Roaming\.minecraft\saves\[world-name]\region</code></dd>
         </dl>
+      </div>
+      <div class="well">
+        <p>
+          Note: On Mac OS the <code>Library</code> folder is hidden, but you can access it like this:
+        </p>
+        <p><img src="/img/go-to-folder-osx.png"></p>
       </div>
     </aside>
     
