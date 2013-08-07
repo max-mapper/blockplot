@@ -4,14 +4,13 @@
   "subdomain": "blockplot",
   "dependencies": {
     "gravatar": "~1.0.6",
-    "voxel-level": "~2.0.0",
+    "voxel-level": "~2.1.0",
     "voxel-bundle": "~0.0.0",
     "voxel-walk": "git://github.com/flyswatter/voxel-walk.git",
     "minecraft-blockinfo": "~0.3.0",
     "voxel-hello-world": "~0.6.0",
     "voxel-fly": "~0.1.0",
     "mca2js": "~0.2.0",
-    "workerstream": "~1.0.0",
     "browser-request": "git://github.com/maxogden/browser-request.git",
     "concat-stream": "~1.0.0",
     "voxel-perlin-terrain": "~1.0.0",
@@ -36,6 +35,7 @@
   },
   "devDependencies": {
     "beefy": "~0.4.0",
-    "browserify": "~2.26.0"
+    "browserify": "~2.26.0",
+    "tape": "~1.0.4"
   }
 }

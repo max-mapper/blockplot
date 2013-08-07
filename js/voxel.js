@@ -11,8 +11,7 @@ var dat = require('dat-gui')
 var loadDelay = 1000 // milliseconds
 
 module.exports = {
-  initGame: initGame,
-  saveRegion: saveRegion
+  initGame: initGame
 }
 
 function getState(game) {
@@ -98,6 +97,8 @@ function initGame(user, options) {
     }, 10 + ~~(Math.random() * loadDelay))
   });
   worldWorker.postMessage({ dbName: 'blocks' })
+  
+  return game
 }
 
 function startGame(game, user, level, options, worldWorker) {
@@ -133,26 +134,5 @@ function startGame(game, user, level, options, worldWorker) {
   avatar.position.copy(options.state.player.position)
   avatar.rotation.copy(options.state.player.rotation)
   storeState(user, game, options.id, options.seed)
-}
-
-function saveRegion(buffer, worldID, regionX, regionZ, cb) {
-  var progress = $('.progress.hidden')
-  progress.removeClass('hidden')
-  var progressBar = progress.find('.bar')
-  progressBar.css('width', '0%')
-  var convertWorker = worker(require('./convert-worker.js'))
-  convertWorker.addEventListener('message', function(ev) {
-    var data = ev.data || {}
-    if (data.progress) {
-      progressBar.css('width', data.progress + '%')
-    } else if (data.done) {
-      progressBar.css('width', '100%')
-      cb(data.errors)
-    } else {
-      console.log(data)
-    }
-  })
-  convertWorker.postMessage({worldID: worldID, regionX: regionX, regionZ: regionZ})
-  convertWorker.postMessage(buffer, [buffer])
 }
 

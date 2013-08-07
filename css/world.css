@@ -6,7 +6,7 @@ body { background: none; }
 #import-popup p { margin: 10px 0; }
 .file-select { width: 300px; }
 .world-title { position: absolute; color: white; padding: 5px; font-size: 30px; top: 0; background: url(/img/logo-cube.png) no-repeat 0 2px; background-size: 42.5px 49px; min-height: 42.5px; min-width: 49px; padding-left: 53px; margin-left: 5px; margin-top: 2px; }
-.page-loading { width: 228px; height: 228px; margin: 100px auto 0 auto; }
+.page-loading { width: 228px; height: 228px; margin: 100px auto 80px auto; }
 .settings, .worlds {
   display: block;
   margin-left: 5px;
@@ -14,6 +14,10 @@ body { background: none; }
   height: 40px;
   background-size: 40px;
   background-repeat: no-repeat;
+}
+
+.progress {
+  margin: 23px 200px;
 }
 
 .dg.ac {

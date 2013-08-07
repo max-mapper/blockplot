@@ -17,15 +17,13 @@ WorldManager.prototype.create = function(worldID, cb) {
   })
 }
 
-
 WorldManager.prototype.load = function(worldID, seed, cb) {
   var user = this.user
   this.db.get(worldID, { asBuffer: false }, function(err, data) {
     if (err || !data || !data.state) {
       var remote = user.remote('worlds')
       remote.get(worldID, {valueEncoding: 'json'}, function(err, world) {
-        console.log('remote get', err, world)
-        if (err || !world) return cb(err, world)
+        if (err || !world) return cb(false, data)
         var local = user.db.sublevel('worlds')
         local.put(world.id, world, {valueEncoding: 'json'}, function(err) {
           if (err) console.error('local world save err', err)

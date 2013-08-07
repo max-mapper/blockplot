@@ -13,22 +13,21 @@ module.exports = function() {
       db: leveljs
     })))
     var converter = mca2js()
-    var pending = 0
+    var count = 0
     var progress = 0
+    var pending = 0
     var done = false
     var errors = {}
     converter.on('data', function(chunk) {
       pending++
-      var percent = ~~((chunk._count / 1024) * 100)
-      if (percent > progress) {
-        self.postMessage({ progress: percent })
-        progress = percent
-      }
-      level.store(worldID, chunk, function afterStore(err) {
-        if (err) errors[key] = err
+      level.store(worldID, chunk, function afterStore(err, encodedLength) {
         pending--
+        count++
+        var percent = ~~((count / 1024) * 100)
+        self.postMessage({ progress: percent, position: chunk.position, length: encodedLength })
+        progress = percent
         if (done && pending === 0) {
-          self.postMessage({ done: true, errors: Object.keys(errors).length > 0 ? errors : false })
+          self.postMessage({ done: true })
           self.close()
         }
       })

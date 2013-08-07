@@ -1,4 +1,5 @@
 var levelUser = require('level-user')
+var worker = require('webworkify')
 var worldManager = require('./world-manager')
 var commonStuff = require('./common')
 var voxelUtils = require('./voxel')
@@ -25,15 +26,15 @@ function beginLoadingWorld(user) {
 
   var container = $('.content')
   var title = $('.world-title')
+  var pageLoading = $('.page-loading')
 
   var hash = window.location.hash
   worldID = hash.substr(1, hash.length - 1)
 
   worlds.load(worldID, false, function(err, world) {
     if (world && world.name) title.append(world.name)
-    if (err && !world) return newWorld()
-    $('.page-loading').addClass('hidden')
-    console.log('initgame', err, world)
+    if (world && !world.state) return newWorld()
+    pageLoading.addClass('hidden')
     voxelUtils.initGame(user, world)
   })
   
@@ -133,7 +134,7 @@ function beginLoadingWorld(user) {
   }
 
   function newWorld() {
-    $('.page-loading').addClass('hidden')
+    pageLoading.addClass('hidden')
     container.html($('.newWorld').html())
   }
   
@@ -155,19 +156,50 @@ function beginLoadingWorld(user) {
     reader.readAsArrayBuffer(file)
   }
   
-  function saveRegion(regionFile, regionX, regionZ) {
-    voxelUtils.saveRegion(regionFile, worldID, regionX, regionZ, function(errs) {
-      if (errs) console.log(errs)
-      try { Avgrund.hide() } catch(e){ }
-      if (typeof game === 'undefined') {
-        var blockPos = regionToBlock(regionX, regionZ)
-        var state = { player: {
-          position: {x: blockPos[0], y: 65, z: blockPos[1]},
-          rotation: {x: 0, y: 0, z: 0}
-        }}
-        voxelUtils.initGame(user, { id: worldID, state: state })
+  function saveRegion(buffer, regionX, regionZ) {
+    var startedGame = false
+    if (typeof game !== 'undefined') startedGame = game // global game
+    if (!startedGame) {
+      pageLoading.removeClass('hidden')
+      container.hide()
+    }
+    var progress = $('.progress.hidden')
+    progress.removeClass('hidden')
+    var progressBar = progress.find('.bar')
+    progressBar.css('width', '0%')
+    var convertWorker = worker(require('./convert-worker.js'))
+    try { Avgrund.hide() } catch(e){ }
+    convertWorker.addEventListener('message', function(ev) {
+      var data = ev.data || {}
+      if (typeof data.progress !== 'undefined') {
+        progressBar.css('width', data.progress + '%')
+        if (data.length > 80 && !startedGame) {
+          var pos = data.position
+          var state = { player: {
+            position: {x: pos[0], y: pos[1], z: pos[2]},
+            rotation: {x: 0, y: 0, z: 0}
+          }}
+          pageLoading.addClass('hidden')
+          startedGame = voxelUtils.initGame(user, { id: worldID, state: state })
+        }
+        if (data.length > 80 && startedGame) {
+          var pos = data.position
+          var from = game.controls.target().avatar.position
+          var to = new game.THREE.Vector3(pos[0], pos[1], pos[2])
+          if ((from.distanceTo(to) / 16) <= game.chunkDistance) {
+            var chunkPos = data.position.map(function(p) { return p / 16 })
+            startedGame.voxels.emit('missingChunk', chunkPos)
+          }
+        }
+      } else if (data.done) {
+        progressBar.css('width', '0%')
+        progress.addClass('hidden')
+      } else {
+        console.log('convert-worker', data)
       }
     })
+    convertWorker.postMessage({worldID: worldID, regionX: regionX, regionZ: regionZ})
+    convertWorker.postMessage(buffer, [buffer])
   }
   
   function regionToBlock(regionX, regionZ) {
