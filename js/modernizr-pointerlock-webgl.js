@@ -1706,9 +1706,5 @@ Detects support for the IndexedDB client-side storage API (final spec).
 
   // Leak Modernizr namespace
   window.Modernizr = Modernizr;
-  module.exports = Modernizr
-
-
-
 
 })(this, document);

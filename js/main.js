@@ -1,5 +1,5 @@
 require('./parallax')()
-var Modernizr = require('./modernizr-pointerlock-webgl')
+
 var startArea = $('.start-area')
 var missingAPIs = []
 if (!Modernizr.pointerlock) missingAPIs.push('Pointer Lock')
