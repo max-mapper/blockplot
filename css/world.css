@@ -15,6 +15,7 @@ body { background: none; }
   background-size: 40px;
   background-repeat: no-repeat;
 }
+.message span { margin-left: 5px; }
 
 .progress {
   margin: 23px 200px;

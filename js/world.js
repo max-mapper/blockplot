@@ -122,6 +122,24 @@ function beginLoadingWorld(user) {
     e.preventDefault()
     try { Avgrund.hide() } catch(e){ }
     Avgrund.show('#import-popup')
+    var chunksImported = $('.chunks-imported')
+    var currentChunk = $('.current-chunk')
+    chunksImported.text('')
+    currentChunk.text('')
+    if (typeof game !== 'undefined') {
+      var pos = game.controls.target().avatar.position
+      var current = 'r.'
+        + Math.floor((pos.x >> 4) / 32)+ '.'
+        + Math.floor((pos.z >> 4) / 32)
+      currentChunk.text('You are currently standing in ' + current)
+    }
+    worlds.db.get(worldID, function(err, world) {
+      if (err) return console.error('world get err', err)
+      if (world.chunksImported) {
+        var list = Object.keys(world.chunksImported).join(', ')
+        chunksImported.text('Already imported: ' + list + '.')
+      }
+    })
   }
 
   function createNewWorld(e) {
@@ -163,6 +181,7 @@ function beginLoadingWorld(user) {
       pageLoading.removeClass('hidden')
       container.hide()
     }
+    var regionName = 'r.' + regionX + '.' + regionZ
     var progress = $('.progress.hidden')
     progress.removeClass('hidden')
     var progressBar = progress.find('.bar')
@@ -194,6 +213,14 @@ function beginLoadingWorld(user) {
       } else if (data.done) {
         progressBar.css('width', '0%')
         progress.addClass('hidden')
+        worlds.db.get(worldID, function(err, world) {
+          if (err) return console.error('world get err', err)
+          if (!world.chunksImported) world.chunksImported = {}
+          world.chunksImported[regionName] = true
+          worlds.db.put(worldID, world, function(err) {
+            if (err) return console.error('world put err', err)
+          })
+        })
       } else {
         console.log('convert-worker', data)
       }
