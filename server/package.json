@@ -1,0 +1,18 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "description": "backend auth server for blockplot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node run.js"
+  },
+  "author": "max ogden",
+  "license": "BSD",
+  "dependencies": {
+    "jquery-untouched": "~1.10.2",
+    "browser-request": "~0.2.1",
+    "persona-id": "0.0.3",
+    "ractive": "~0.3.4",
+    "level-socket": "~1.0.0"
+  }
+}

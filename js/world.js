@@ -3,6 +3,7 @@ var worker = require('webworkify')
 var worldManager = require('./world-manager')
 var commonStuff = require('./common')
 var voxelUtils = require('./voxel')
+var eventer = require('./eventer')
 window.voxelUtils = voxelUtils
 
 var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
@@ -78,15 +79,7 @@ function beginLoadingWorld(user) {
       
       showIframe()
 
-      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent"
-      var eventer = window[eventMethod]
-      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message"
-      
-      eventer(messageEvent, function (e) {
-        if (e.data && e.data === 'process-tick') return
-        if (!e.data) return
-        try { var data = JSON.parse(e.data) }
-        catch (e) { var data = {} }
+      eventer(function(data) {
         destroy.removeClass('hidden')
         if ( !data.login) {
           loggedOut.removeClass('hidden')
@@ -95,7 +88,7 @@ function beginLoadingWorld(user) {
           publish.removeClass('hidden')
           loggedOut.addClass('hidden')
         }
-      }, false)
+      })
       
       publish.click(function(e) {
         var state = settings.find('.state')

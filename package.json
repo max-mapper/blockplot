@@ -28,7 +28,9 @@
   },
   "scripts": {
     "start": "beefy js/main.js:js/index-bundle.js js/world.js:js/world-bundle.js js/user.js:js/user-bundle.js --debug=false -- --noparse=three",
-    "build": "browserify js/main.js -o js/index-bundle.js && browserify js/world.js -o js/world-bundle.js && browserify js/user.js -o js/user-bundle.js"
+    "build": "browserify js/main.js -o js/index-bundle.js && browserify js/world.js -o js/world-bundle.js && browserify js/user.js -o js/user-bundle.js",
+    "server": "node server/run.js",
+    "test": "node tests/server.js"
   },
   "engines": {
     "node": ">=0.10.x"
@@ -36,6 +38,7 @@
   "devDependencies": {
     "beefy": "~0.4.0",
     "browserify": "~2.26.0",
-    "tape": "~1.0.4"
+    "tape": "~1.0.4",
+    "leveldown": "~0.6.2"
   }
 }
