@@ -4,29 +4,21 @@ voxel hosting service. work in progress
 
 ## run it
 
-blockplot has two parts: the backend (in `hoodie-server`) and the web app
+blockplot has two parts: the backend auth-server and the 100% client-side web app
 
-for easy dev you can just use the hosted backend, which has full CORS support. in `common.js` look for `var hoodie  = new Hoodie` and make sure its using the `blockplot.com` url.
+### running the web app locally in dev mode
 
-you can also run your own hoodie locally:
+first run the server:
 
-### installing and running a local hoodie
-
-hoodie requires couchdb and some other stuff, you'll need to follow their [installation instructions](http://hood.ie/#installation)
-
-then:
-
-```sh
-cd hoodie-server
+```
+cd server
 npm install
 npm start
 ```
 
-### running the web app locally in dev mode
+then in another terminal run the front-end dev server from the top level folder:
 
-then to run the dev web app, go back into this folder and do:
-
-```sh
+```
 npm install
 npm start
 ```
