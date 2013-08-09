@@ -6,24 +6,13 @@ function WorldManager(user) {
   this.db = user.db.sublevel('worlds')
 }
 
-WorldManager.prototype.create = function(worldID, cb) {
-  var self = this
-  self.db.get(worldID, function(err, world) {
-    if (err) world = {}
-    world.seed = 'foo'
-    self.db.put(worldID, world, {valueEncoding: 'json'}, function(err) {
-      cb(err, world)
-    })
-  })
-}
-
-WorldManager.prototype.load = function(worldID, seed, cb) {
+WorldManager.prototype.load = function(worldID, cb) {
   var user = this.user
   this.db.get(worldID, { asBuffer: false }, function(err, data) {
     if (err || !data || !data.state) {
       var remote = user.remote('worlds')
       remote.get(worldID, {valueEncoding: 'json'}, function(err, world) {
-        if (err || !world) return cb(false, data)
+        if (err || !world) return cb(err, data)
         var local = user.db.sublevel('worlds')
         local.put(world.id, world, {valueEncoding: 'json'}, function(err) {
           if (err) console.error('local world save err', err)
@@ -33,31 +22,46 @@ WorldManager.prototype.load = function(worldID, seed, cb) {
         })
       })
     } else {
-      cb(false, data)
+      cb(err, data)
     }
   })
 }
 
-WorldManager.prototype.publish = function(world, cb) {
-  var user = this.user
-  var remote = user.remote(world.id)
-  var local = user.db.sublevel(world.id)
-  world.published = true
-  var worlds = user.db.sublevel('worlds')
+// todo transaction
+WorldManager.prototype.publish = function(worldID, cb) {
   var opts = {valueEncoding: 'json'}
-  worlds.put(world.id, world, opts, function(err) {
-    user.remote('worlds').put(world.id, world, opts, function(err) {
-      var email = user.profile.email
-      user.remote('profiles').get(email, function(err, profile) {
-        if (err) return cb(err)
-        if (!profile.worlds) profile.worlds = {}
-        profile.worlds[world.id] = world
-        user.remote('profiles').put(email, profile, opts, function(err, profile) {
-          if (err) return cb(err)
-          user.copy(local, remote, cb)
-        })
+  var user = this.user
+  var worlds = user.db.sublevel('worlds')
+  worlds.get(worldID, opts, function(err, world) {
+    if (err) return cb(err)
+    var email = user.profile.email
+    var remote = user.remote(world.id)
+    var local = user.db.sublevel(world.id)
+    world.published = true
+    var pending = 3, errors = []
+    
+    worlds.put(world.id, world, opts, finish)
+    
+    user.remote('worlds').put(world.id, world, opts, finish)
+    
+    user.remote('profiles').get(email, function(err, profile) {
+      if (err) return finish(err)
+      if (!profile.worlds) profile.worlds = {}
+      profile.worlds[world.id] = world
+      user.remote('profiles').put(email, profile, opts, function(err, profile) {
+        if (err) return finish(err)
+        user.copy(local, remote, finish)
       })
     })
+    
+    function finish(err) {
+      pending--
+      if (err) errors.push(err)
+      if (pending !== 0) return
+      if (errors.length === 1) errors = errors[0]
+      if (errors.length === 0) errors = false
+      cb(errors)
+    }
   })
 }
 

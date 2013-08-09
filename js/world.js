@@ -32,7 +32,7 @@ function beginLoadingWorld(user) {
   var hash = window.location.hash
   worldID = hash.substr(1, hash.length - 1)
 
-  worlds.load(worldID, false, function(err, world) {
+  worlds.load(worldID, function(err, world) {
     if (world && world.name) title.append(world.name)
     if (world && !world.state) return newWorld()
     pageLoading.addClass('hidden')
@@ -137,9 +137,13 @@ function beginLoadingWorld(user) {
 
   function createNewWorld(e) {
     e.preventDefault()
-    worlds.create(worldID, function(err, world) {
-      if (err) console.error('world create error', err)
-      voxelUtils.initGame(user, world)
+    worlds.db.get(worldID, function(err, world) {
+      if (err) world = {}
+      world.seed = 'foo'
+      worlds.db.put(worldID, world, {valueEncoding: 'json'}, function(err) {
+        if (err) console.error('world create error', err)
+        voxelUtils.initGame(user, world)
+      })
     })
     return false
   }
