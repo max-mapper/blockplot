@@ -16,8 +16,8 @@ WorldManager.prototype.load = function(worldID, cb) {
         var local = user.db.sublevel('worlds')
         local.put(world.id, world, {valueEncoding: 'json'}, function(err) {
           if (err) console.error('local world save err', err)
-          user.copy(user.remote(worldID), user.db.sublevel(worldID), function() {
-            cb(false, world)
+          user.copy(user.remote(worldID), user.db.sublevel(worldID), function(err) {
+            cb(err, world)
           })
         })
       })

@@ -13,7 +13,8 @@ function start() {
     audience: 'http://localhost:8889',
     devMode: false,
     location: path.join(__dirname, 'test.db'),
-    whitelist: ['http://localhost:8890']
+    whitelist: ['http://localhost:8890'],
+    verbose: true
   }
 
   var server = require('../server')(opts).httpServer

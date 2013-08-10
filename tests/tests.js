@@ -121,14 +121,40 @@ function runTests() {
     })
   })
   
-  // test('world manager load remote', function(t) {
-  //   t.plan(4)
-  //   var world = {id: 'pizza', name: 'pizza', published: false}
-  //   worlds.db.put(world.id, world, {valueEncoding: 'json'}, function(err) {
-  //     t.equals(!!err, false)
-  //     worlds.load(world.id)
-  //   })
-  // })
+  test('world manager load remote', function(t) {
+    var world = {id: 'biscuits', name: 'biscuits', published: true}
+    var testData = new Uint8Array(1)
+    testData[0] = 9
+    var opts = {valueEncoding: 'json'}
+    var binOpts = { valueEncoding: 'binary' }
+    function setup(cb) {
+      user.remote('worlds').put('biscuits', world, opts, function(err) {
+        t.equals(!!err, false)
+        user.remote('biscuits').put('woo', testData, binOpts, function(err) {
+          t.equals(!!err, false)
+          cb()
+        })
+      })
+    }
+    function verify() {
+      worlds.db.get('biscuits', opts, function(err, localWorld) {
+        t.equals(!!err, false)
+        t.equals(localWorld.id, 'biscuits')
+        user.db.sublevel('biscuits').get('woo', binOpts, function(err, data) {
+          t.equals(!!err, false)
+          t.equals(JSON.stringify(data), JSON.stringify(testData))
+          t.end()
+        })
+      })
+    }
+    setup(function() {
+      worlds.load('biscuits', function(err, loadedWorld) {
+        t.equals(!!err, false)
+        t.equals(loadedWorld.id, 'biscuits')
+        verify()
+      })
+    })
+  })
 }
 
 function CRUDTest(db, t) {

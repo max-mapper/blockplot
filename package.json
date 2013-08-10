@@ -15,16 +15,17 @@
     "concat-stream": "~1.0.0",
     "voxel-perlin-terrain": "~1.0.0",
     "hat": "0.0.3",
-    "level-socket": "0.1.0",
+    "level-socket": "1.1.0",
     "jquery-untouched": "~1.10.2",
     "ractive": "~0.3.3",
-    "level-user": "~1.1.0",
+    "level-user": "~1.2.0",
     "voxel-debug": "~0.2.0",
     "webworkify": "0.0.0",
     "dat-gui": "~0.5.0",
     "level-js": "~1.0.7",
     "level-sublevel": "~4.8.3",
-    "levelup": "~0.12.0"
+    "levelup": "~0.12.0",
+    "leveldown": "~0.6.2"
   },
   "scripts": {
     "start": "beefy js/main.js:js/index-bundle.js js/world.js:js/world-bundle.js js/user.js:js/user-bundle.js --debug=false -- --noparse=three",
