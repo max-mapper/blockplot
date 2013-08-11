@@ -32,6 +32,7 @@ function storeState(user, game, worldID, seed, cb) {
     worlds.get(worldID, {valueEncoding: 'json'}, function(err, world) {
       world.state = state
       if (seed) world.seed = seed
+      world.lastUpdate = new Date()
       worlds.put(worldID, world, cb)
     })
   }, 5000)

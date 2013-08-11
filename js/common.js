@@ -1,6 +1,8 @@
 var gravatar = require('gravatar')
 var concat = require('concat-stream')
 var hat = require('hat')
+var moment = require('moment')
+var fort = require('fort')
 
 module.exports = function(user) {
   var username = 'anonymous'
@@ -51,6 +53,7 @@ module.exports = function(user) {
     }
     getWorlds(function(err, worlds) {
       if (err) return console.error(err)
+      worlds = fort.descend(worlds, function(w) { return w.lastUpdate })
       var content = $('.demo-browser-content')
       var title = "Your Worlds"
       if (loggedIn) title = username + "'s Worlds"
@@ -62,7 +65,7 @@ module.exports = function(user) {
         content.find('a:last')
           .attr('href', '/world.html#' + world.id)
         content.find('dt:last').html(world.name)
-        content.find('dd:last').text(world.published ? "Published": "Unpublished")
+        content.find('dd:last').text(world.lastUpdate ? 'Updated ' + moment(world.lastUpdate).fromNow() : "Not played yet")
       })
       cb()
     })
