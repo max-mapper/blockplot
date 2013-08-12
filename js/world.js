@@ -85,16 +85,19 @@ function beginLoadingWorld(user) {
           loggedOut.removeClass('hidden')
           publish.addClass('hidden')
         } else {
-          publish.removeClass('hidden')
-          loggedOut.addClass('hidden')
+          user.getProfile(function(err, profile) {
+            user.profile = profile
+            publish.removeClass('hidden')
+            loggedOut.addClass('hidden')
+          })
         }
       })
       
       publish.click(function(e) {
         var state = settings.find('.state')
         state.text('State: Publishing...')
-        worlds.publish(world, function(err) {
-          if (err) return state.text('error ' + err.message)
+        worlds.publish(world.id, function(err) {
+          if (err) return state.text('publish error ' + err.message)
           state.text('State: Published!')
         })
       })
