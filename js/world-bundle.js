@@ -478,6 +478,8 @@ function beginLoadingWorld(db) {
 
   function loadDemoWorld(e) {
     e.preventDefault()
+    pageLoading.removeClass('hidden')
+    container.hide()
     binaryXHR('r.0.-1.mca', function(err, arrayBuffer) {
       saveRegion(arrayBuffer, 0, -1)
     })
