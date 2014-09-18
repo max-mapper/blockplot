@@ -36,8 +36,8 @@
       <article>
         <div class="logo"></div>
         <div class="tile start-area hidden">
-          <a class="btn btn-info btn-large btn-block upload-world"><span>Create Or Load A World</span></a>
-          <span class="micro">Load Minecraft worlds, or start from scratch</span>
+          <a class="btn btn-info btn-large btn-block upload-world"><span>Load A World</span></a>
+          <span class="micro">Load Minecraft worlds, or view the demo world</span>
         </div>
       </article>
     </section>
@@ -45,9 +45,9 @@
     <section id="second" class="section" data-speed="4" data-type="background">
       <center>
         <h1 class="demo-logo">
-          Share your Minecraft worlds.
+          Explore Minecraft worlds.
         </h1>
-        <small>Let anyone play in their browser, without any plugins.</small>
+        <small>Runs in your browser, no plugins required.</small>
       </center>
     </section>
     
@@ -58,7 +58,7 @@
           <h3 class="demo-panel-title">Play On The Web</h3>
           
           <p>
-            BlockPlot is a web app where you can create new 3D block worlds or upload existing worlds from other popular voxel apps and share them online with your friends.
+            BlockPlot is a web app where you can load Minecraft worlds and explore them in your web browser. It's not a fully featured game like Minecraft yet, but it's open source and you can add features by <a href="https://github.com/maxogden/blockplot">getting involved</a>!
           </p>
           <p>
             It is made by the team that created <strong><a target="_blank" href="http://voxeljs.com">Voxel.js</a></strong>, the most advanced open source JavaScript technology for rendering voxel worlds in web browsers.
@@ -99,7 +99,7 @@
             <p>
               Data for city in video + screenshot is from <a href="http://www.planetminecraft.com/project/new-york-city-de-1930er/" target="_blank">New York City 1930's</a> by FreakMinecraft198
             </p>
-            <p>BlockPlot is not affiliated with Minecraft. Minecraft is property of Mojang AB.</p>
+            <p>BlockPlot is not affiliated with Minecraft. Minecraft is property of Microsoft.</p>
           </p>
         </div>
       </div>
@@ -116,25 +116,6 @@
       </div>
     </aside>
     
-    <aside class="login-form">
-      <div class="messages"></div>
-      <div class="control-group">
-        <input type="text" class="login-field" name="username" value="" placeholder="Username"
-        id="login-name" required>
-        <label class="login-field-icon fui-man-16" for="login-name"></label>
-      </div>
-      <div class="control-group">
-        <input type="password" class="login-field" name="password" value="" placeholder="Password" id="login-pass" required>
-        <label class="login-field-icon fui-lock-16" for="login-pass"></label>
-      </div>
-      <input data-action="signIn" type="submit" value="Login" class="btn btn-info btn-large btn-block"></input>
-      <a class="login-link show-signup">Create an account</a>
-    </aside>
-    
-    <aside class="frontpage-signup-form">
-      <p>Please <strong><a class="open-login">log in or sign up</a></strong> to create a world!</p>
-    </aside>
-    
     <aside class="welcome">
       <div class="demo-browser">
         <div class="demo-browser-side">
@@ -143,9 +124,6 @@
             <a class="btn btn-danger btn-large btn-block new-world">
               Create
             </a>
-            <!-- <a class="btn btn-large btn-block logout" target="_blank">
-              Log out
-            </a> -->
           </div>
           <h5 class="username"></h5>
           <h6>
@@ -164,6 +142,7 @@
         <form class="new-world-form">
           <div class="messages"></div>
           <h3>New World</h3>
+          <p>Give your new world a name. You'll be able to upload your Minecraft world or play our demo world on the next screen.</p>
           <div class="control-group">
             <input type="text" class="name-field" name="name" value="" placeholder="World Name"
             id="world-name" required>

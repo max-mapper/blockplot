@@ -37,14 +37,15 @@ body {
 
 .front-page-form .form:before { content: none; }
 .front-page-form .form .login-field { width: 220px; }
-.short-form { width: 300px; }
+.short-form { width: 400px; }
 .view-profile { font-size: 15px; padding-left: 0px !important; }
 .gravatar { width: 111px; }
 
 /* flat ui overrides */
   .demo-browser { background: #2c3e50; margin: 0; padding-top: 0px; border-radius: 6px; }
   .demo-browser-content { min-height: 271px; }
-  .demo-browser-content h3 { margin-bottom: 15px; }
+  .demo-browser-content h3 { margin-bottom: 5px; }
+  .demo-browser-content p { margin-bottom: 20px; }
   .demo-browser-action > .btn:before { content: ""; margin-right: 12px;}
   .demo-browser-action > .new-world:before { content: "\e004" !important; margin-right: 8px; }
   .demo-browser-side { padding: 20px 20px 0 20px; }

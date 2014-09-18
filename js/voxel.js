@@ -24,11 +24,11 @@ function getState(game) {
   return state
 }
 
-function storeState(user, game, worldID, seed, cb) {
+function storeState(db, game, worldID, seed, cb) {
   if (!cb) cb = function noop(){}
   return setInterval(function() {
     var state = getState(game)
-    var worlds = user.db.sublevel('worlds')
+    var worlds = db.sublevel('worlds')
     worlds.get(worldID, {valueEncoding: 'json'}, function(err, world) {
       world.state = state
       if (seed) world.seed = seed
@@ -38,7 +38,7 @@ function storeState(user, game, worldID, seed, cb) {
   }, 5000)
 }
 
-function initGame(user, options) {
+function initGame(db, options) {
   $('.content').hide()
   
   var textures = "http://commondatastorage.googleapis.com/voxeltextures/painterly/"
@@ -64,7 +64,7 @@ function initGame(user, options) {
     playerSkin: options.playerSkin || textures + '../player.png',
     chunkSize: gameChunkSize,
     chunkDistance: 4,
-    // removeDistance: 10,
+    removeDistance: 10,
     arrayType: Uint8Array,
     worldOrigin: pos,
     materials: options.textures ? materials : colors,
@@ -80,13 +80,13 @@ function initGame(user, options) {
   
   game.view.renderer.setClearColorHex( 0xBFD9EA, 1 )
   
-  var level = voxelLevel(user.db)
+  var level = voxelLevel(db)
 
   var worldWorker = worker(require('./world-worker.js'))
   worldWorker.addEventListener('message', function (ev) {
     var data = ev.data
     if (!data) return
-    if (data.ready && game.paused) return startGame(game, user, level, options, worldWorker)
+    if (data.ready && game.paused) return startGame(game, db, level, options, worldWorker)
     if (data.log) return console.log(data)
     var chunk = {
       position: data.position,
@@ -97,12 +97,12 @@ function initGame(user, options) {
       game.showChunk(chunk)
     }, 10 + ~~(Math.random() * loadDelay))
   });
-  worldWorker.postMessage({ dbName: 'blocks' })
+  worldWorker.postMessage({ dbName: 'blockplot' })
   
   return game
 }
 
-function startGame(game, user, level, options, worldWorker) {
+function startGame(game, db, level, options, worldWorker) {
   options.state = options.state || {}
   game.voxels.on('missingChunk', function(p) {
     worldWorker.postMessage({
@@ -134,6 +134,6 @@ function startGame(game, user, level, options, worldWorker) {
   var avatar = game.controls.target().avatar
   avatar.position.copy(options.state.player.position)
   avatar.rotation.copy(options.state.player.rotation)
-  storeState(user, game, options.id, options.seed)
+  storeState(db, game, options.id, options.seed)
 }
 

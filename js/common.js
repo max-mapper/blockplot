@@ -4,9 +4,8 @@ var hat = require('hat')
 var moment = require('moment')
 var fort = require('fort')
 
-module.exports = function(user) {
+module.exports = function(db) {
   var username = 'anonymous'
-  if (user.profile && user.profile.username) username = user.profile.username
   
   var formContainer = $('#default-popup')
   
@@ -15,9 +14,6 @@ module.exports = function(user) {
     .on('click', '.new-world', openDialog)
     .on('click', '.open-menu', openDialog)
     .on('click', '.menu-buttons .worlds', openWorldsList)
-    .on('click', '.open-login', user.persona.identify.bind(user.persona))
-    .on('click', '.show-login', showLogin)
-    .on('click', '.logout', logout)
     .on('click', '.new-world', showNewWorldForm)
     .on('submit', '.new-world-form', submitNewWorldForm)
     .on('click', '.file-select', function(e) {
@@ -75,10 +71,6 @@ module.exports = function(user) {
     console.log('isLoggedOut')
   }
 
-  function showLogin() {
-    formContainer.find('.form').html($('.login-form').html())
-  }
-
   function formField(form, field) {
     return form.find('input[name="' + field + '"]')
   }
@@ -87,14 +79,9 @@ module.exports = function(user) {
     var parent = formField(form, field).parents()[0]
     return $(parent)
   }
-
-  function logout() {
-    user.persona.unidentify.bind(user.persona)
-  }
   
   function getWorlds(cb) {
-    window.user = user
-    var worldStream = user.db.sublevel('worlds').createValueStream({ valueEncoding: 'json' })
+    var worldStream = db.sublevel('worlds').createValueStream({ valueEncoding: 'json' })
     var sentError
     worldStream.pipe(concat(function(worlds) {
       if (!worlds) worlds = []
@@ -106,17 +93,6 @@ module.exports = function(user) {
     })
   }
 
-  function getGravatar(cb) {
-    user.db.get('profile', function(err, profile) {
-      if (err) return cb(err)
-      if (!profile) return cb(false, false)
-      var email = profile.email
-      if (!email) return cb(false, false)
-      var gravURL = gravatar.url(email, {s: '200', r: 'pg', d: 'retro'})
-      cb(false, gravURL)
-    })
-  }
-  
   function showNewWorldForm(e) {
     $('.demo-browser-content').html($('.new-world-form').html())
   }
@@ -128,7 +104,7 @@ module.exports = function(user) {
     submit.hide()
     var uuid = hat()
     var world = {id: uuid, name: worldName, published: false}
-    user.db.sublevel('worlds').put(uuid, world, {valueEncoding: 'json'}, function(err) {
+    db.sublevel('worlds').put(uuid, world, {valueEncoding: 'json'}, function(err) {
       if (err) return submit.show()
       window.location.href = "/world.html#" + uuid
       

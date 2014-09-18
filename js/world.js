@@ -1,26 +1,27 @@
-var levelUser = require('level-user')
+var levelup = require('levelup')
+var leveljs = require('level-js')
+var sublevel = require('level-sublevel')
+var binaryXHR = require('binary-xhr')
 var worker = require('webworkify')
 var worldManager = require('./world-manager')
 var commonStuff = require('./common')
 var voxelUtils = require('./voxel')
-var eventer = require('./eventer')
 window.voxelUtils = voxelUtils
 
-var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
-window.user = user
+var db = sublevel(levelup('blockplot', {
+  db: leveljs,
+  valueEncoding: 'json'
+}))
 
-user.getProfile(function(err, profile) {
-  user.profile = profile
-  beginLoadingWorld(user)
-  commonStuff(user)
-})
+beginLoadingWorld(db)
+commonStuff(db)
 
-function beginLoadingWorld(user) {
+function beginLoadingWorld(db) {
   var worldID, userName
-  var worlds = worldManager(user)
+  var worlds = worldManager(db)
   
   $(document)
-    .on('click', '#scratch', createNewWorld)
+    .on('click', '#scratch', loadDemoWorld)
     .on('click', '#import', showImportPopup)
     .on('click', '.menu-buttons .settings', openSettings)
     .on('change', '#file', handleFileSelect)
@@ -36,15 +37,13 @@ function beginLoadingWorld(user) {
     if (world && world.name) title.append(world.name)
     if (world && !world.state) return newWorld()
     pageLoading.addClass('hidden')
-    voxelUtils.initGame(user, world)
+    voxelUtils.initGame(db, world)
   })
   
   function openSettings() {
     worlds.db.get(worldID, function(err, world) {
-      var iframe
       var settings = $('#settings-popup')
       var info = settings.find('.info')
-      var publish = info.find('.publish')
       var destroy = info.find('.destroy')
       var loggedOut = info.find('.loggedOut')
       settings.find('h3').text(world.name)
@@ -53,55 +52,11 @@ function beginLoadingWorld(user) {
       
       if (!world.state)  {
         loggedOut.addClass('hidden')
-        return info.find('.state').text('No world data to publish')
+        return info.find('.state').text('No world data yet!')
       }
-      
-      info.find('.state').text('State: ' + (world.published ? 'Published': 'Unpublished'))
-      
-      user.getProfile(function(err, profile) {
-        destroy.removeClass('hidden')
-        if (err || !profile || !profile.username) {
-          loggedOut.removeClass('hidden')
-          publish.addClass('hidden')
-        } else {
-          publish.removeClass('hidden')
-          loggedOut.addClass('hidden')
-        }
-      })
-      
-      function showIframe() {
-        settings.find('iframe').remove()
-        iframe = document.createElement('iframe')
-        iframe.seamless = 'seamless'
-        iframe.src = user.options.baseURL
-        settings[0].appendChild(iframe)
-      }
-      
-      showIframe()
-
-      eventer(function(data) {
-        destroy.removeClass('hidden')
-        if ( !data.login) {
-          loggedOut.removeClass('hidden')
-          publish.addClass('hidden')
-        } else {
-          user.getProfile(function(err, profile) {
-            user.profile = profile
-            publish.removeClass('hidden')
-            loggedOut.addClass('hidden')
-          })
-        }
-      })
-      
-      publish.click(function(e) {
-        var state = settings.find('.state')
-        state.text('State: Publishing...')
-        worlds.publish(world.id, function(err) {
-          if (err) return state.text('publish error ' + err.message)
-          state.text('State: Published!')
-        })
-      })
-      
+            
+      destroy.removeClass('hidden')
+            
       destroy.click(function(e) {
         var state = settings.find('.state')
         state.text('State: Destroying...')
@@ -138,15 +93,10 @@ function beginLoadingWorld(user) {
     })
   }
 
-  function createNewWorld(e) {
+  function loadDemoWorld(e) {
     e.preventDefault()
-    worlds.db.get(worldID, function(err, world) {
-      if (err) world = {}
-      world.seed = 'foo'
-      worlds.db.put(worldID, world, {valueEncoding: 'json'}, function(err) {
-        if (err) console.error('world create error', err)
-        voxelUtils.initGame(user, world)
-      })
+    binaryXHR('r.0.-1.mca', function(err, arrayBuffer) {
+      saveRegion(arrayBuffer, 0, -1)
     })
     return false
   }
@@ -199,7 +149,7 @@ function beginLoadingWorld(user) {
             rotation: {x: 0, y: 0, z: 0}
           }}
           pageLoading.addClass('hidden')
-          startedGame = voxelUtils.initGame(user, { id: worldID, state: state })
+          startedGame = voxelUtils.initGame(db, { id: worldID, state: state })
         }
         if (data.length > 80 && startedGame) {
           var pos = data.position

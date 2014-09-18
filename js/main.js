@@ -1,3 +1,7 @@
+var levelup = require('levelup')
+var leveljs = require('level-js')
+var sublevel = require('level-sublevel')
+var commonStuff = require('./common')
 require('./parallax')()
 
 var startArea = $('.start-area')
@@ -11,12 +15,10 @@ if (missingAPIs.length > 0) {
 
 startArea.removeClass('hidden')
 
-var levelUser = require('level-user')
-var commonStuff = require('./common')
+var db = sublevel(levelup('blockplot', {
+  db: leveljs,
+  valueEncoding: 'json'
+}))
 
-var user = levelUser({dbName: 'blocks', baseURL: "http://localhost:8080" })
+commonStuff(db)
 
-user.getProfile(function(err, profile) {
-  user.profile = profile
-  commonStuff(user)
-})

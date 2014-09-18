@@ -9,7 +9,7 @@ module.exports = function() {
   window = self
   console = {log: function(msg) { self.postMessage({log: msg}) }}
   function convert(buffer, X, Z) {
-    var level = voxelLevel(sublevel(levelup('blocks', {
+    var level = voxelLevel(sublevel(levelup('blockplot', {
       db: leveljs
     })))
     var converter = mca2js()
