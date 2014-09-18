@@ -481,7 +481,8 @@ function beginLoadingWorld(db) {
     pageLoading.removeClass('hidden')
     container.hide()
     binaryXHR('r.0.-1.mca', function(err, arrayBuffer) {
-      saveRegion(arrayBuffer, 0, -1)
+      var startState = {"position":{"x":333.555698517669,"y":38,"z":-322.96095406781353},"rotation":{"x":0,"y":-2.0880000000000014,"z":0}}
+      saveRegion(arrayBuffer, 0, -1, startState)
     })
     return false
   }
@@ -509,7 +510,7 @@ function beginLoadingWorld(db) {
     reader.readAsArrayBuffer(file)
   }
   
-  function saveRegion(buffer, regionX, regionZ) {
+  function saveRegion(buffer, regionX, regionZ, startState) {
     var startedGame = false
     if (typeof game !== 'undefined') startedGame = game // global game
     if (!startedGame) {
@@ -529,10 +530,11 @@ function beginLoadingWorld(db) {
         progressBar.css('width', data.progress + '%')
         if (data.length > 80 && !startedGame) {
           var pos = data.position
-          var state = { player: {
+          var defaultState = {
             position: {x: pos[0], y: pos[1], z: pos[2]},
             rotation: {x: 0, y: 0, z: 0}
-          }}
+          }
+          var state = { player: startState || defaultState}
           pageLoading.addClass('hidden')
           startedGame = voxelUtils.initGame(db, { id: worldID, state: state })
         }
