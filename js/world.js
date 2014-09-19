@@ -141,6 +141,7 @@ function beginLoadingWorld(db) {
     progressBar.css('width', '0%')
     var convertWorker = worker(require('./convert-worker.js'))
     try { Avgrund.hide() } catch(e){ }
+    var defaultPosition = null
     convertWorker.addEventListener('message', function(ev) {
       var data = ev.data || {}
       if (typeof data.progress !== 'undefined') {
@@ -151,7 +152,10 @@ function beginLoadingWorld(db) {
             position: {x: pos[0], y: pos[1], z: pos[2]},
             rotation: {x: 0, y: 0, z: 0}
           }
-          var state = { player: startState || defaultState}
+          if (defaultPosition) {
+            defaultState.position = defaultPosition
+          }
+          var state = {player: startState || defaultState}
           pageLoading.addClass('hidden')
           startedGame = voxelUtils.initGame(db, { id: worldID, state: state })
         }
@@ -162,6 +166,13 @@ function beginLoadingWorld(db) {
           if ((from.distanceTo(to) / 16) <= game.chunkDistance) {
             var chunkPos = data.position.map(function(p) { return p / 16 })
             startedGame.voxels.emit('missingChunk', chunkPos)
+          }
+          if (defaultPosition && !startState) {
+            // Attempt to move the player to a better default position
+            setTimeout(function() {
+              var avatar = startedGame.controls.target().avatar
+              avatar.position.copy(defaultPosition)
+            }, 500)
           }
         }
       } else if (data.done) {
@@ -175,6 +186,12 @@ function beginLoadingWorld(db) {
             if (err) return console.error('world put err', err)
           })
         })
+      } else if (data.defaultPosition) {
+        defaultPosition = {
+          x: data.defaultPosition[0],
+          y: data.defaultPosition[1],
+          z: data.defaultPosition[2]
+        }
       } else {
         console.log('convert-worker', data)
       }
