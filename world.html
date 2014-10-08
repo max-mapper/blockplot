@@ -47,7 +47,7 @@
     <aside id="import-popup" class="avgrund-popup">
       <p>
         <div class="message">
-          Choose a <code>.mca</code> file to upload. <span class="chunks-imported"></span><span class="current-chunk"></span>
+          Choose a <code>.mca</code> first and then your <code>username.dat</code> file to upload. <span class="chunks-imported"></span><span class="current-chunk"></span>
         </div>
       </p>
       <p>
@@ -55,6 +55,9 @@
       </p>
       <p>
         <code>.mca</code> files are <a href="http://www.minecraftwiki.net/wiki/Region_file_format" target="_blank">region files</a> which means they contain chunks of your world. Older <code>.mcr</code> files (from Minecraft v1.1 and below) aren't supported by BlockPlot, but if you open them in a recent Minecraft they will be converted to <code>.mca</code> files.
+      </p>
+      <p>
+        Choose your <code>username.dat</code> file to move your BlockPlot player to the location of your player when it was last saved in Minecraft. Your <code>username.dat</code> file is usually in the same folder as your region files, but is in a sub=folder called <code>players</code>.
       </p>
       <input class="hidden" type="file" id="file" name="file" />
       <div class="well">
@@ -79,7 +82,7 @@
       <div class="info">
         <p class="state"></p>
         <a class="hidden btn btn-large btn-block btn-danger destroy">Destroy World</a>
-        <a class="btn btn-large btn-block btn-danger" id='import'>Import .mca</a>
+        <a class="btn btn-large btn-block btn-danger" id='import'>Import .mca/.dat</a>
       </div>
     </aside>
   

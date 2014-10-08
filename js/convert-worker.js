@@ -5,7 +5,7 @@ var levelup = require('levelup')
 var voxelLevel = require('voxel-level')
 
 module.exports = function() {
-  var regionX, regionZ, worldID
+  var regionX, regionZ, worldID, defaultPosition
   window = self
   console = {log: function(msg) { self.postMessage({log: msg}) }}
   function convert(buffer, X, Z) {
@@ -18,12 +18,25 @@ module.exports = function() {
     var pending = 0
     var done = false
     var errors = {}
+    var highest = 0
     converter.on('data', function(chunk) {
       pending++
       level.store(worldID, chunk, function afterStore(err, encodedLength) {
         pending--
         count++
         var percent = ~~((count / 1024) * 100)
+
+        // If we are at the center chunk, find a decent default starting position
+        var min = [chunk.dimensions[0] * (32 * X), chunk.dimensions[2] * (32 * Z)]
+        if (chunk.position[0] === (min[0] + 256) && chunk.position[2] === (min[1] + 256)) {
+          for (var y = 0; y < chunk.voxels.length; y += 3) {
+            if (chunk.voxels[y] > highest) {
+              highest = chunk.voxels[y]
+            }
+          }
+          self.postMessage({ defaultPosition: [chunk.position[0], highest + 6, chunk.position[2]] })
+        }
+
         self.postMessage({ progress: percent, position: chunk.position, length: encodedLength })
         progress = percent
         if (done && pending === 0) {
