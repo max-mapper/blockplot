@@ -3,6 +3,10 @@ var leveljs = require('level-js')
 var sublevel = require('level-sublevel')
 var binaryXHR = require('binary-xhr')
 var worker = require('webworkify')
+var zlib = require('zlib')
+var NbtReader = require('node-nbt').NbtReader
+var concat = require('concat-stream')
+var createReadStream = require('filereader-stream')
 var worldManager = require('./world-manager')
 var commonStuff = require('./common')
 var voxelUtils = require('./voxel')
@@ -117,14 +121,35 @@ function beginLoadingWorld(db) {
     var files = evt.target.files
     var file = files[0]
     var parts = file.name.split('.')
-    if (parts[0] !== 'r' && parts[3] !== 'mca') return
-    var reader = new FileReader()
-    var regionX = parseInt(parts[1])
-    var regionZ = parseInt(parts[2])
-    reader.onloadend = function() {
-      saveRegion(reader.result, regionX, regionZ)
+    if (parts[1] === 'dat') {
+      // must start game first
+      if (typeof game === 'undefined') return
+      var reader = createReadStream(file)
+      reader.pipe(concat(function(contents) {
+        var buffer = zlib.gunzipSync(contents)
+        var d = NbtReader.readTag(buffer)
+        d = NbtReader.removeBufferKey(d)
+        Object.keys(d.val).forEach(function(k) {
+          var obj = d.val[k]
+          if (obj.name === 'Pos') {
+            var l = obj.val.list
+            var pos = new game.THREE.Vector3(l[0].val, l[1].val, l[2].val)
+            var avatar = game.controls.target().avatar
+            avatar.position.copy(pos)
+            try { Avgrund.hide() } catch(e){ }
+          }
+        })
+      }))
     }
-    reader.readAsArrayBuffer(file)
+    if (parts[0] === 'r' && parts[3] === 'mca') {
+      var reader = new FileReader()
+      var regionX = parseInt(parts[1])
+      var regionZ = parseInt(parts[2])
+      reader.onloadend = function() {
+        saveRegion(reader.result, regionX, regionZ)
+      }
+      reader.readAsArrayBuffer(file)
+    }
   }
   
   function saveRegion(buffer, regionX, regionZ, startState) {

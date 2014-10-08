@@ -5,8 +5,9 @@
   "dependencies": {
     "binary-xhr": "0.0.2",
     "browser-request": "git://github.com/maxogden/browser-request.git",
-    "concat-stream": "~1.0.0",
+    "concat-stream": "^1.4.6",
     "dat-gui": "~0.5.0",
+    "filereader-stream": "^0.1.1",
     "fort": "~0.1.0",
     "gravatar": "~1.0.6",
     "hat": "0.0.3",
@@ -18,6 +19,7 @@
     "mca2js": "~1.0.0",
     "minecraft-blockinfo": "~0.3.0",
     "moment": "~2.1.0",
+    "node-nbt": "0.0.2",
     "ractive": "~0.3.3",
     "voxel-bundle": "~0.0.0",
     "voxel-debug": "~0.2.0",
@@ -36,9 +38,9 @@
     "node": ">=0.10.x"
   },
   "devDependencies": {
-    "beefy": "~0.4.0",
-    "browserify": "~2.26.0",
-    "tape": "~1.0.4",
-    "leveldown": "~0.6.2"
+    "beefy": "^2.1.1",
+    "browserify": "^6.0.3",
+    "leveldown": "~0.6.2",
+    "tape": "^3.0.0"
   }
 }
