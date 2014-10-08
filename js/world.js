@@ -12,6 +12,11 @@ var commonStuff = require('./common')
 var voxelUtils = require('./voxel')
 window.voxelUtils = voxelUtils
 
+// make camera look at front of player
+// var target = game.controls.target()
+// target.avatar.cameraOutside.lookAt(target.avatar.cameraOutside.worldToLocal(target.avatar.matrixWorld.getPosition()))
+// target.avatar.cameraOutside.position.z = -100
+
 var db = sublevel(levelup('blockplot', {
   db: leveljs,
   valueEncoding: 'json'
